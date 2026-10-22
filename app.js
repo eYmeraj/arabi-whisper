@@ -13,7 +13,7 @@ import {
 } from "./lib.js";
 
 // ---- Configuration ----
-const SPOTIFY_CLIENT_ID = ""; // from your Spotify developer app (see README)
+const SPOTIFY_CLIENT_ID = "545a023e91a7461cb5409aed0569ca8f"; // public by design: identifies the Spotify developer app (see README)
 // Tried in order: the second one takes over when the first is out of free requests or overloaded.
 const MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite"];
 const POLL_MS = 5000;
