@@ -7,7 +7,7 @@ Read Egyptian Arabic songs the way they're sung. While a song plays on Spotify (
 - what it means in English
 - every word: tap it to see its meaning and a grammar note
 
-With timed lyrics, the line being sung lights up and the page scrolls along.
+With timed lyrics, the line being sung lights up and the page scrolls along. The bar at the bottom plays, pauses and skips songs on Spotify, and tapping a line plays the song from there.
 
 Live at **https://eymeraj.github.io/arabi-whisper/**. It's a static page with no server: your Gemini key and Spotify login stay in your browser.
 
@@ -27,7 +27,7 @@ Live at **https://eymeraj.github.io/arabi-whisper/**. It's a static page with no
 
 ## How it works
 
-1. Every 5 seconds, while the page is visible, it asks Spotify what's playing ([currently-playing](https://developer.spotify.com/documentation/web-api/reference/get-the-users-currently-playing-track)).
+1. Every 5 seconds, while the page is visible, it asks Spotify what's playing ([currently-playing](https://developer.spotify.com/documentation/web-api/reference/get-the-users-currently-playing-track)). Playback buttons use Spotify's player commands, which need Premium and the "control playback" permission asked for at login.
 2. It looks the song up on [LRCLIB](https://lrclib.net), a free lyrics database. It prefers Arabic script, then timed lyrics, and matches the track's length to within 8 seconds. If nothing is found, you can paste the lyrics.
 3. It sends each distinct line once to Gemini (`gemini-3.8-flash`, then `gemini-3.5-flash-lite` if that one is out of free requests). The prompt and spelling rules are in `lib.js`. Results stream in line by line.
 4. Converted songs are saved in the browser, so replaying a song costs nothing. Each device converts a song once.

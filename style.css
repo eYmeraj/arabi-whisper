@@ -17,6 +17,7 @@
   --font-ui: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-ar: "Noto Naskh Arabic", "Geeza Pro", "Arabic Typesetting", "Times New Roman", serif;
   --font-display: "Reem Kufi", "Atkinson Hyperlegible Next", system-ui, sans-serif;
+  --player-h: 76px;
   color-scheme: light;
 }
 
@@ -116,8 +117,10 @@ button {
   color: var(--ink);
 }
 
-.btn-ghost:hover {
-  background: var(--surface);
+@media (hover: hover) {
+  .btn-ghost:hover {
+    background: var(--surface);
+  }
 }
 
 .btn-ghost.sm {
@@ -140,9 +143,11 @@ button {
   cursor: pointer;
 }
 
-.icon-btn:hover {
-  background: var(--line);
-  color: var(--ink);
+@media (hover: hover) {
+  .icon-btn:hover {
+    background: var(--line);
+    color: var(--ink);
+  }
 }
 
 /* ---- Now-playing bar ---- */
@@ -458,8 +463,10 @@ body.live .line:not(.on) .rom {
   text-decoration: none;
 }
 
-.w:hover {
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
+@media (hover: hover) {
+  .w:hover {
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+  }
 }
 
 .w[aria-pressed="true"] {
@@ -543,6 +550,85 @@ body.live .line:not(.on) .rom {
   }
 }
 
+/* Tap a line to play the song from there, once the page can control Spotify. */
+.can-seek .line {
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .can-seek .line:not(.on):hover {
+    background: color-mix(in srgb, var(--line) 55%, transparent);
+  }
+}
+
+/* Playback bar: at the bottom, where a thumb reaches, clear of the iPhone home indicator. */
+.player {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--bg);
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid var(--line);
+}
+
+.player-in {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  height: var(--player-h);
+}
+
+.pbtn {
+  display: inline-grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .pbtn:hover {
+    background: var(--line);
+  }
+}
+
+.pbtn.main {
+  width: 58px;
+  height: 58px;
+  background: var(--ink);
+  color: var(--bg);
+}
+
+@media (hover: hover) {
+  .pbtn.main:hover {
+    background: var(--ink-2);
+  }
+}
+
+.pbtn .i-pause,
+.pbtn.playing .i-play {
+  display: none;
+}
+
+.pbtn.playing .i-pause {
+  display: block;
+}
+
+.has-player .page {
+  padding-bottom: calc(96px + var(--player-h) + env(safe-area-inset-bottom, 0px));
+}
+
 .follow {
   position: fixed;
   left: 50%;
@@ -558,6 +644,10 @@ body.live .line:not(.on) .rom {
   font-weight: 700;
   box-shadow: var(--shadow);
   cursor: pointer;
+}
+
+.has-player .follow {
+  bottom: calc(var(--player-h) + 14px + env(safe-area-inset-bottom, 0px));
 }
 
 /* ---- Dialogs ---- */

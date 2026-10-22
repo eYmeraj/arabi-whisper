@@ -39,6 +39,21 @@
 
 <button id="followBtn" class="follow" type="button" hidden>Follow along</button>
 
+<nav id="player" class="player" aria-label="Spotify playback" hidden>
+  <div class="player-in">
+    <button id="prevBtn" class="pbtn" type="button" aria-label="Previous song" title="Previous song">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M5.5 5h2.2v14H5.5zM19.5 5.7v12.6a.9.9 0 0 1-1.4.8l-9.4-6.3a.9.9 0 0 1 0-1.6l9.4-6.3a.9.9 0 0 1 1.4.8Z"/></svg>
+    </button>
+    <button id="playBtn" class="pbtn main" type="button" aria-label="Play">
+      <svg class="i-play" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path fill="currentColor" d="M8 5.7v12.6a.9.9 0 0 0 1.4.8l9.6-6.3a.9.9 0 0 0 0-1.6L9.4 4.9A.9.9 0 0 0 8 5.7Z"/></svg>
+      <svg class="i-pause" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path fill="currentColor" d="M6.5 5h3.8v14H6.5zM13.7 5h3.8v14h-3.8z"/></svg>
+    </button>
+    <button id="nextBtn" class="pbtn" type="button" aria-label="Next song" title="Next song">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M16.3 5h2.2v14h-2.2zM4.5 5.7v12.6a.9.9 0 0 0 1.4.8l9.4-6.3a.9.9 0 0 0 0-1.6L5.9 4.9a.9.9 0 0 0-1.4.8Z"/></svg>
+    </button>
+  </div>
+</nav>
+
 <dialog id="settings" aria-labelledby="settingsTitle">
   <div class="dlg">
     <div class="dlg-head">
@@ -57,7 +72,7 @@
     </section>
     <section class="step">
       <h3><span class="step-n">2</span>Spotify</h3>
-      <p>Lets this page see which song is playing on your phone, laptop or speaker.</p>
+      <p>Lets this page see which song is playing on your phone, laptop or speaker, and play, pause or skip it.</p>
       <div><button id="spotifyBtn" class="btn" type="button">Connect Spotify</button></div>
       <p id="spotifyState" class="state"></p>
     </section>
