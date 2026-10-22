@@ -1,1 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#14213D"/><text x="32" y="44" font-family="Geeza Pro, Noto Naskh Arabic, Arial, sans-serif" font-size="38" font-weight="700" fill="#E9B949" text-anchor="middle">ع</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Lyrics turning into sound: two lines of text with a sound wave between them, in a speech bubble.
+       Square on purpose: iOS rounds the corners itself. apple-touch-icon.png is this file at 180x180. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1f3060"/>
+      <stop offset="1" stop-color="#0b1324"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="232" x2="0" y2="840" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f6d27a"/>
+      <stop offset="1" stop-color="#e2a637"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect x="176" y="232" width="672" height="480" rx="168" fill="url(#gold)"/>
+  <path d="M364 654 L528 698 Q436 786 270 840 Q344 764 364 654 Z" fill="url(#gold)"/>
+  <g fill="#13203d">
+    <rect x="289" y="326" width="360" height="56" rx="28" opacity="0.38"/>
+    <rect x="289" y="447" width="30" height="48" rx="15"/>
+    <rect x="341" y="423" width="30" height="96" rx="15"/>
+    <rect x="393" y="401" width="30" height="140" rx="15"/>
+    <rect x="445" y="431" width="30" height="80" rx="15"/>
+    <rect x="497" y="411" width="30" height="120" rx="15"/>
+    <rect x="549" y="396" width="30" height="150" rx="15"/>
+    <rect x="601" y="426" width="30" height="90" rx="15"/>
+    <rect x="653" y="407" width="30" height="128" rx="15"/>
+    <rect x="705" y="443" width="30" height="56" rx="15"/>
+    <rect x="289" y="562" width="280" height="56" rx="28" opacity="0.38"/>
+  </g>
+</svg>
