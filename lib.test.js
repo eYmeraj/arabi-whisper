@@ -6,6 +6,7 @@ import {
   pickLyrics,
   cleanTitle,
   activeIndex,
+  lineEnd,
   buildPrompt,
   readResult,
   objectSplitter,
@@ -58,6 +59,14 @@ test("activeIndex finds the line being sung", () => {
   assert.equal(activeIndex(lines, 5000), 1);
   assert.equal(activeIndex(lines, 99999), 2);
   assert.equal(activeIndex([{ t: null }], 5000), -1);
+});
+
+test("lineEnd is where the next timed line starts, with limits for the last line", () => {
+  const lines = [{ t: 1000 }, { t: 1000 }, { t: 5000 }, { t: 9000 }];
+  assert.equal(lineEnd(lines, 0), 5000); // a line repeated at the same time is not an end
+  assert.equal(lineEnd(lines, 2), 9000);
+  assert.equal(lineEnd(lines, 3), 17000); // last line: 8 s
+  assert.equal(lineEnd(lines, 3, 12000), 12000); // but never past the song's end
 });
 
 test("buildPrompt numbers the lines and names the song", () => {
