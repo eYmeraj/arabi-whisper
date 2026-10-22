@@ -67,6 +67,13 @@ export function activeIndex(lines, ms) {
   return i;
 }
 
+/** When timed line i ends: where the next timed line starts. The last line gets at most 8 s, and never runs past the song. */
+export function lineEnd(lines, i, songMs = Infinity) {
+  const start = lines[i].t;
+  const next = lines.slice(i + 1).find((l) => l.t != null && l.t > start);
+  return next ? next.t : Math.min(start + 8000, songMs);
+}
+
 // The spelling rules here are the same ones the "Sounds" guide in index.html explains. Keep them in step.
 const SYSTEM = `You are an Egyptian Arabic teacher. An English speaker is learning Egyptian Arabic by reading song lyrics. For every lyric line you receive, give its pronunciation in plain English letters, its meaning in English, and a word-by-word breakdown.
 
