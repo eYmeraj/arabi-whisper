@@ -14,6 +14,7 @@ import {
 
 // ---- Configuration ----
 const SPOTIFY_CLIENT_ID = "545a023e91a7461cb5409aed0569ca8f"; // public by design: identifies the Spotify developer app (see README)
+const SPOTIFY_SCOPE = "user-read-currently-playing user-modify-playback-state"; // see what's playing; play, pause, skip, seek
 // Tried in order: the second one takes over when the first is out of free requests or overloaded.
 const MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite"];
 const POLL_MS = 5000;
@@ -100,6 +101,10 @@ const el = {
   keyState: $("keyState"),
   spotifyBtn: $("spotifyBtn"),
   spotifyState: $("spotifyState"),
+  player: $("player"),
+  playBtn: $("playBtn"),
+  prevBtn: $("prevBtn"),
+  nextBtn: $("nextBtn"),
 };
 
 function h(tag, props = {}, ...children) {
@@ -138,6 +143,7 @@ function renderHeader() {
   const total = song?.unique?.length || 0;
   el.progress.hidden = !(song?.converting && total);
   el.progress.firstElementChild.style.width = `${total ? (100 * Object.keys(song.conv).length) / total : 0}%`;
+  renderPlayer();
 }
 
 function renderNotice() {
@@ -307,7 +313,12 @@ function closeCard() {
 
 el.content.addEventListener("click", (e) => {
   const b = e.target.closest("button.w");
-  if (!b) return;
+  if (!b) {
+    // Like Spotify's own lyrics view: tap a line to play the song from there.
+    const li = e.target.closest("li.line");
+    if (li?.line?.t != null && isLive() && !e.target.closest(".card")) seek(li.line.t);
+    return;
+  }
   const li = b.closest("li");
   const i = Number(b.dataset.w);
   if (state.card === li && li.dataset.sel === String(i)) closeCard();
@@ -321,15 +332,20 @@ function isLive() {
   return !!(song?.synced && state.lineEls.length && playback?.key === song.key);
 }
 
+// Where the song is now: the last position Spotify reported plus the time since.
+function position() {
+  const { progress, at, playing } = state.playback;
+  return progress + (playing ? performance.now() - at : 0);
+}
+
 function tick() {
   const live = isLive();
   const playing = live && state.playback.playing;
   document.body.classList.toggle("live", playing && state.follow);
+  document.body.classList.toggle("can-seek", live && canControl());
   el.follow.hidden = !(playing && !state.follow);
   if (!live) return;
-  const { progress, at } = state.playback;
-  const position = progress + (playing ? performance.now() - at : 0);
-  const i = activeIndex(state.song.lines, position + 300); // light the line just as it starts
+  const i = activeIndex(state.song.lines, position() + 300); // light the line just as it starts
   if (i === state.active) return;
   state.lineEls[state.active]?.classList.remove("on");
   state.active = i;
@@ -372,7 +388,7 @@ async function connectSpotify() {
         redirect_uri: REDIRECT_URI,
         code_challenge_method: "S256",
         code_challenge: challenge,
-        scope: "user-read-currently-playing",
+        scope: SPOTIFY_SCOPE,
         state: nonce,
       }),
   );
@@ -386,13 +402,13 @@ async function finishSpotifyLogin() {
   const pkce = store.get("spotify:pkce");
   store.remove("spotify:pkce");
   if (!q.has("code") || !pkce || q.get("state") !== pkce.nonce) {
-    state.notice = { warn: true, text: "Spotify login didn't finish. Try connecting again.", actions: [["Open settings", openSettings]] };
+    state.notice = { from: "login", warn: true, text: "Spotify login didn't finish. Try connecting again.", actions: [["Open settings", openSettings]] };
     return;
   }
   try {
     await spotifyToken({ grant_type: "authorization_code", code: q.get("code"), redirect_uri: REDIRECT_URI, client_id: SPOTIFY_CLIENT_ID, code_verifier: pkce.verifier });
   } catch {
-    state.notice = { warn: true, text: "Spotify login failed. Try connecting again.", actions: [["Open settings", openSettings]] };
+    state.notice = { from: "login", warn: true, text: "Spotify login failed. Try connecting again.", actions: [["Open settings", openSettings]] };
   }
 }
 
@@ -408,17 +424,22 @@ async function spotifyToken(params) {
   }
   const j = await res.json();
   const old = store.get("spotify:tokens") || {};
-  store.set("spotify:tokens", { access: j.access_token, refresh: j.refresh_token || old.refresh, expires: Date.now() + (j.expires_in - 60) * 1000 });
+  store.set("spotify:tokens", {
+    access: j.access_token,
+    refresh: j.refresh_token || old.refresh,
+    expires: Date.now() + (j.expires_in - 60) * 1000,
+    scope: j.scope ?? old.scope ?? "",
+  });
 }
 
-async function spotifyGet(url) {
+async function spotifyFetch(url, init = {}) {
   const refresh = () => spotifyToken({ grant_type: "refresh_token", refresh_token: store.get("spotify:tokens").refresh, client_id: SPOTIFY_CLIENT_ID });
   if (Date.now() > store.get("spotify:tokens").expires) await refresh();
-  const get = () => fetch(url, { headers: { authorization: "Bearer " + store.get("spotify:tokens").access } });
-  let res = await get();
+  const send = () => fetch(url, { ...init, headers: { authorization: "Bearer " + store.get("spotify:tokens").access } });
+  let res = await send();
   if (res.status === 401) {
     await refresh();
-    res = await get();
+    res = await send();
   }
   return res;
 }
@@ -429,16 +450,16 @@ async function poll() {
   if (polling || document.hidden || Date.now() < pollPausedUntil || !SPOTIFY_CLIENT_ID || !store.get("spotify:tokens")) return;
   polling = true;
   try {
-    const res = await spotifyGet("https://api.spotify.com/v1/me/player/currently-playing");
+    const res = await spotifyFetch("https://api.spotify.com/v1/me/player/currently-playing");
     if (res.status === 429) {
       pollPausedUntil = Date.now() + (Number(res.headers.get("retry-after")) || 30) * 1000;
     } else if (res.status === 401) {
       store.remove("spotify:tokens"); // still refused after a fresh token
       disconnected();
     } else if (res.status === 403) {
-      setNotice({ warn: true, text: "Spotify refused access. In your Spotify developer app, add your account under User Management and check that Premium is active." });
+      setNotice({ from: "poll", warn: true, text: "Spotify refused access. In your Spotify developer app, add your account under User Management and check that Premium is active." });
     } else if (res.ok) {
-      setNotice(null);
+      if (["poll", "login"].includes(state.notice?.from)) setNotice(null); // keep a playback message until it is dealt with
       onPlayback(res.status === 204 ? null : await res.json());
     }
   } catch {
@@ -450,7 +471,7 @@ async function poll() {
 
 function disconnected() {
   state.playback = null;
-  setNotice({ warn: true, text: "Spotify disconnected. Connect it again in Settings.", actions: [["Open settings", openSettings]] });
+  setNotice({ from: "poll", warn: true, text: "Spotify disconnected. Connect it again in Settings.", actions: [["Open settings", openSettings]] });
   render();
 }
 
@@ -506,6 +527,59 @@ function show(song) {
   render();
   scrollTo({ top: 0 });
 }
+
+// ---- Playback controls (Spotify Premium) ----
+const canControl = () => !!store.get("spotify:tokens")?.scope?.includes("user-modify-playback-state");
+
+// Sends one player command. `then` updates the screen at once; a poll shortly after confirms what Spotify did.
+async function control(method, command, then) {
+  if (!canControl()) {
+    setNotice({ from: "control", warn: true, text: "Connect Spotify once more to use the playback buttons.", actions: [["Connect", connectSpotify]] });
+    return;
+  }
+  try {
+    const res = await spotifyFetch("https://api.spotify.com/v1/me/player/" + command, { method });
+    if (res.ok) {
+      if (state.notice?.from === "control") setNotice(null);
+      then?.();
+      setTimeout(poll, 700);
+    } else if (res.status === 404) {
+      setNotice({ from: "control", warn: true, text: "Spotify isn't playing on any device. Start a song in the Spotify app first." });
+    } else if (res.status !== 429) {
+      const reason = (await res.json().catch(() => null))?.error?.reason;
+      const text = reason === "PREMIUM_REQUIRED" ? "Spotify only allows playback control with Premium." : "Spotify didn't take that command. Try it in the Spotify app.";
+      setNotice({ from: "control", warn: true, text });
+    }
+  } catch {
+    // offline: the next poll shows what is really playing
+  }
+}
+
+function seek(ms) {
+  control("PUT", `seek?position_ms=${Math.max(0, Math.round(ms))}`, () => {
+    if (state.playback) Object.assign(state.playback, { progress: ms, at: performance.now() });
+    state.follow = true;
+  });
+}
+
+function renderPlayer() {
+  const show = !!(SPOTIFY_CLIENT_ID && store.get("spotify:tokens"));
+  el.player.hidden = !show;
+  document.body.classList.toggle("has-player", show);
+  const playing = !!state.playback?.playing;
+  el.playBtn.classList.toggle("playing", playing);
+  el.playBtn.setAttribute("aria-label", playing ? "Pause" : "Play");
+}
+
+el.playBtn.addEventListener("click", () => {
+  const playing = !!state.playback?.playing;
+  control("PUT", playing ? "pause" : "play", () => {
+    if (state.playback) Object.assign(state.playback, { progress: position(), at: performance.now(), playing: !playing });
+    renderHeader();
+  });
+});
+el.prevBtn.addEventListener("click", () => control("POST", "previous"));
+el.nextBtn.addEventListener("click", () => control("POST", "next"));
 
 // ---- Lyrics ----
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
