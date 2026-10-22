@@ -1,0 +1,9 @@
+{
+  "name": "arabi-whisper",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "start": "python3 -m http.server 8000 --bind 127.0.0.1"
+  }
+}
