@@ -173,20 +173,21 @@ function renderContent() {
 }
 
 function welcomeView() {
+  const spotify = !!SPOTIFY_CLIENT_ID; // without it, this copy works with pasted lyrics only
+  const start = spotify ? "Play a song on Spotify. Arabi Whisper finds the lyrics, spells" : "Paste the lyrics of an Egyptian song. Arabi Whisper spells";
+  const paste = (cls) => h("button", { class: cls, type: "button", onclick: openPaste, text: "Paste lyrics" });
   return h(
     "section",
     { class: "welcome" },
     h("h1", { class: "display", text: "Read Egyptian songs the way they're sung" }),
-    h("p", {
-      class: "lede",
-      text: "Play a song on Spotify. Arabi Whisper finds the lyrics, spells out how every line sounds in English letters, translates it and explains each word.",
-    }),
+    h("p", { class: "lede", text: `${start} out how every line sounds in English letters, translates it and explains each word.` }),
     h("figure", { class: "example" }, h("figcaption", { class: "eyebrow", text: "Example · tap a word" }), h("ol", { class: "lines" }, lineItem(EXAMPLE.line, EXAMPLE.conv))),
     h(
       "div",
       { class: "actions" },
-      h("button", { class: "btn", type: "button", onclick: openSettings, text: "Set up in 2 steps" }),
-      h("button", { class: "btn-ghost", type: "button", onclick: openPaste, text: "Paste lyrics" }),
+      !spotify && store.get("gemini:key")
+        ? paste("btn")
+        : [h("button", { class: "btn", type: "button", onclick: openSettings, text: spotify ? "Set up in 2 steps" : "Add free Gemini key" }), paste("btn-ghost")],
     ),
   );
 }
