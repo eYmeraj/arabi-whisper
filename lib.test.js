@@ -1,0 +1,112 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {
+  parseLyrics,
+  numberLines,
+  pickLyrics,
+  cleanTitle,
+  activeIndex,
+  buildPrompt,
+  readResult,
+  objectSplitter,
+  createGeminiStream,
+  StreamError,
+} from "./lib.js";
+
+test("parseLyrics reads timed lines, repeated tags and instrumental gaps", () => {
+  const lines = parseLyrics("[ar: Amr Diab]\n[00:12.50] تملي معاك\n[00:20.00]\n[00:15.00][01:02.00]  ولو حتى بعيد  عني ", null);
+  assert.deepEqual(lines, [
+    { t: 12500, text: "تملي معاك" },
+    { t: 15000, text: "ولو حتى بعيد عني" },
+    { t: 20000, text: "" },
+    { t: 62000, text: "ولو حتى بعيد عني" },
+  ]);
+});
+
+test("parseLyrics falls back to plain lyrics and keeps one blank line between stanzas", () => {
+  assert.deepEqual(parseLyrics("", "\n\nسطر واحد\n\n\n\nسطر اتنين\n\n"), [
+    { t: null, text: "سطر واحد" },
+    { t: null, text: "" },
+    { t: null, text: "سطر اتنين" },
+  ]);
+});
+
+test("numberLines converts a repeated line once", () => {
+  const { lines, unique } = numberLines([{ t: 1, text: "a" }, { t: 2, text: "" }, { t: 3, text: "b" }, { t: 4, text: "a" }]);
+  assert.deepEqual(lines.map((l) => l.n), [1, 0, 2, 1]);
+  assert.deepEqual(unique, [{ n: 1, text: "a" }, { n: 2, text: "b" }]);
+});
+
+test("pickLyrics prefers Arabic script, then timing, and rejects other recordings", () => {
+  const latin = { id: 1, duration: 243, plainLyrics: "Tamally maak", syncedLyrics: "[00:01.00] Tamally maak" };
+  const arabic = { id: 2, duration: 245, plainLyrics: "تملي معاك", syncedLyrics: null };
+  const live = { id: 3, duration: 300, plainLyrics: "تملي معاك", syncedLyrics: "[00:01.00] تملي معاك" };
+  assert.equal(pickLyrics([latin, arabic, live], 243.4).id, 2);
+  assert.equal(pickLyrics([latin, live], 243.4).id, 1);
+  assert.equal(pickLyrics([live, { id: 4, instrumental: true, duration: 243 }], 243), null);
+  assert.equal(pickLyrics({ message: "busy" }, 243), null);
+});
+
+test("cleanTitle drops featuring credits and version suffixes", () => {
+  assert.equal(cleanTitle("Kalam Forsan (feat. Mohamed Mounir) - Remastered"), "Kalam Forsan");
+  assert.equal(cleanTitle("(Intro)"), "(Intro)");
+});
+
+test("activeIndex finds the line being sung", () => {
+  const lines = [{ t: 1000 }, { t: 5000 }, { t: 9000 }];
+  assert.equal(activeIndex(lines, 500), -1);
+  assert.equal(activeIndex(lines, 5000), 1);
+  assert.equal(activeIndex(lines, 99999), 2);
+  assert.equal(activeIndex([{ t: null }], 5000), -1);
+});
+
+test("buildPrompt numbers the lines and names the song", () => {
+  const { input } = buildPrompt({ title: "Tamally Maak", artist: "Amr Diab" }, [{ n: 3, text: "تملي معاك" }]);
+  assert.equal(input, 'Song: "Tamally Maak" by Amr Diab\n\nLines (number|text):\n3|تملي معاك');
+});
+
+test("readResult keeps only wanted, well-formed lines", () => {
+  const wanted = new Set([1]);
+  assert.deepEqual(readResult({ n: "1", rom: " albi ", en: "my heart", words: [{ ar: "قلبي", rom: "albi", en: "my heart" }, "x", { ar: "?" }] }, wanted), {
+    n: 1,
+    ar: "",
+    rom: "albi",
+    en: "my heart",
+    words: [{ ar: "قلبي", rom: "albi", en: "my heart", note: "" }],
+  });
+  assert.equal(readResult({ n: 2, rom: "x" }, wanted), null);
+  assert.equal(readResult({ n: 1, rom: "" }, wanted), null);
+  assert.equal(readResult(null, wanted), null);
+});
+
+test("objectSplitter finds objects across chunks, braces in strings, fences and pretty printing", () => {
+  const got = [];
+  const push = objectSplitter((o) => got.push(o));
+  for (const chunk of ['```json\n{"n":1,"rom":"a {b}', ' \\"c\\""}\n{\n  "n": 2', ',\n  "rom": "x"\n}\n{"n":3,"rom":}\n```']) push(chunk);
+  assert.deepEqual(got, [{ n: 1, rom: 'a {b} "c"' }, { n: 2, rom: "x" }]);
+});
+
+// Event shapes from https://ai.google.dev/gemini-api/docs/thinking (streaming example).
+const sse = [
+  'event: interaction.created\ndata: {"interaction":{"id":"v1_x","status":"in_progress"},"event_type":"interaction.created"}',
+  'event: step.start\ndata: {"index":0,"step":{"signature":"","summary":[{"text":"{\\"n\\":9}","type":"text"}],"type":"thought"},"event_type":"step.start"}',
+  'event: step.delta\ndata: {"index":0,"delta":{"signature":"Ep","type":"thought_signature"},"event_type":"step.delta"}',
+  'event: step.start\ndata: {"index":1,"step":{"content":[{"text":"{\\"n\\":1,\\"rom\\":\\"ana\\"}\\n{\\"n\\":2,","type":"text"}],"type":"model_output"},"event_type":"step.start"}',
+  'event: step.delta\ndata: {"index":1,"delta":{"text":"\\"rom\\":\\"enta\\"}","type":"text"},"event_type":"step.delta"}',
+  'event: interaction.completed\ndata: {"interaction":{"id":"v1_x","status":"completed"},"event_type":"interaction.completed"}',
+].join("\r\n\r\n");
+
+test("createGeminiStream reads model output and skips thoughts, whatever the chunk edges", () => {
+  for (const size of [1, 7, 64, sse.length]) {
+    const got = [];
+    const stream = createGeminiStream((o) => got.push(o));
+    for (let i = 0; i < sse.length; i += size) stream.push(sse.slice(i, i + size));
+    assert.equal(stream.end(), "completed");
+    assert.deepEqual(got, [{ n: 1, rom: "ana" }, { n: 2, rom: "enta" }], `chunk size ${size}`);
+  }
+});
+
+test("createGeminiStream raises stream errors", () => {
+  const stream = createGeminiStream(() => {});
+  assert.throws(() => stream.push('data: {"event_type":"error","error":{"code":"x","message":"boom"}}\n\n'), StreamError);
+});

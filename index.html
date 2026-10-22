@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.scdn.co https://*.spotifycdn.com; connect-src https://accounts.spotify.com https://api.spotify.com https://lrclib.net https://generativelanguage.googleapis.com; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Arabi Whisper</title>
+<meta name="description" content="Egyptian Arabic songs from Spotify with the pronunciation in English letters, a translation and word-by-word meanings.">
+<meta name="theme-color" content="#F1F3F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1324" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700&family=Noto+Naskh+Arabic:wght@400;600&family=Reem+Kufi:wght@500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <img id="art" class="art" alt="" width="44" height="44" hidden>
+    <div class="now">
+      <p id="songTitle" class="song-title brand">Arabi Whisper</p>
+      <p class="song-sub"><span id="chip" class="chip" hidden></span><span id="songArtist" class="song-artist">Egyptian songs, the way they're sung</span></p>
+    </div>
+    <button id="soundsBtn" class="btn-ghost sm" type="button" aria-haspopup="dialog">Sounds</button>
+    <button id="settingsBtn" class="icon-btn" type="button" aria-label="Settings" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M19.4 13.5a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1h-.2a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3h.1a1.6 1.6 0 0 0 1-1.5v-.2a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8v.1a1.6 1.6 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z"/></svg>
+    </button>
+  </div>
+  <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+  <div id="progress" class="progress" hidden><span></span></div>
+</header>
+
+<main id="content" class="page"></main>
+
+<button id="followBtn" class="follow" type="button" hidden>Follow along</button>
+
+<dialog id="settings" aria-labelledby="settingsTitle">
+  <div class="dlg">
+    <div class="dlg-head">
+      <h2 id="settingsTitle">Settings</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <section class="step">
+      <h3><span class="step-n">1</span>Gemini key</h3>
+      <p>Gemini writes the pronunciation and meanings. Get a free key from <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>. Leave billing off for that Google project so it stays free.</p>
+      <div class="field">
+        <label class="sr-only" for="geminiKey">Gemini API key</label>
+        <input id="geminiKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste your key">
+        <button id="saveKey" class="btn" type="button">Save</button>
+      </div>
+      <p id="keyState" class="state"></p>
+    </section>
+    <section class="step">
+      <h3><span class="step-n">2</span>Spotify</h3>
+      <p>Lets this page see which song is playing on your phone, laptop or speaker.</p>
+      <div><button id="spotifyBtn" class="btn" type="button">Connect Spotify</button></div>
+      <p id="spotifyState" class="state"></p>
+    </section>
+    <section class="step">
+      <h3>Lyrics for any song</h3>
+      <p>Paste lyrics from anywhere to read them here.</p>
+      <div><button id="settingsPaste" class="btn-ghost" type="button">Paste lyrics</button></div>
+      <p class="state">Your key and Spotify login are stored only in this browser. Lyrics are sent to Gemini to be converted.</p>
+    </section>
+  </div>
+</dialog>
+
+<dialog id="paste" aria-labelledby="pasteTitle">
+  <div class="dlg">
+    <div class="dlg-head">
+      <h2 id="pasteTitle">Paste lyrics</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <p>Arabic script or Arabic in English letters, one lyric line per line.</p>
+    <label class="sr-only" for="pasteText">Lyrics</label>
+    <textarea id="pasteText" rows="10" dir="auto" spellcheck="false"></textarea>
+    <div><button id="pasteGo" class="btn" type="button">Show pronunciation</button></div>
+  </div>
+</dialog>
+
+<!-- The spelling rules match the prompt in lib.js. Keep them in step. -->
+<dialog id="sounds" aria-labelledby="soundsTitle">
+  <div class="dlg">
+    <div class="dlg-head">
+      <h2 id="soundsTitle">How to read the sounds</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <p>Words are spelled the way Egyptian singers say them. Double letters mean a longer sound.</p>
+    <table class="key">
+      <caption>Vowels</caption>
+      <tbody>
+        <tr><th scope="row">a</th><td>short, as in "cat"<span class="ex"><b>ana</b> I</span></td></tr>
+        <tr><th scope="row">aa</th><td>long, as in "father"<span class="ex"><b>salaam</b> peace</span></td></tr>
+        <tr><th scope="row">e</th><td>as in "bed"<span class="ex"><b>enta</b> you</span></td></tr>
+        <tr><th scope="row">i</th><td>as in "sit"<span class="ex"><b>min</b> from</span></td></tr>
+        <tr><th scope="row">ee</th><td>as in "see"<span class="ex"><b>habeeb</b> beloved</span></td></tr>
+        <tr><th scope="row">ei</th><td>as in "day"<span class="ex"><b>beit</b> house</span></td></tr>
+        <tr><th scope="row">o</th><td>as in "more"<span class="ex"><b>yom</b> day</span></td></tr>
+        <tr><th scope="row">oo</th><td>as in "moon"<span class="ex"><b>noor</b> light</span></td></tr>
+        <tr><th scope="row">u</th><td>as in "put"<span class="ex"><b>kull</b> all</span></td></tr>
+      </tbody>
+    </table>
+    <table class="key">
+      <caption>Consonants</caption>
+      <tbody>
+        <tr><th scope="row">'</th><td>a catch in the throat: the squeezed sound of <span lang="ar">ع</span>, or the stop in "uh-oh" (<span lang="ar">ء</span>, and <span lang="ar">ق</span> in Cairo)<span class="ex"><b>ma'aak</b> with you</span></td></tr>
+        <tr><th scope="row">h</th><td>both <span lang="ar">ح</span> (a strong breath from the throat) and <span lang="ar">ه</span><span class="ex"><b>hena</b> here</span></td></tr>
+        <tr><th scope="row">kh</th><td>like "ch" in Scottish "loch"<span class="ex"><b>khalaas</b> enough</span></td></tr>
+        <tr><th scope="row">gh</th><td>like a French "r"<span class="ex"><b>ghaali</b> dear</span></td></tr>
+        <tr><th scope="row">g</th><td>always hard, as in "go" (<span lang="ar">ج</span>)<span class="ex"><b>gameel</b> beautiful</span></td></tr>
+        <tr><th scope="row">r</th><td>rolled, as in Spanish<span class="ex"><b>rooh</b> soul</span></td></tr>
+        <tr><th scope="row">q</th><td>a deep "k", only in Classical songs<span class="ex"><b>qamar</b> moon</span></td></tr>
+        <tr><th scope="row">el-</th><td>"the"; it blends into some letters<span class="ex"><b>esh-shams</b> the sun</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</dialog>
+</body>
+</html>
