@@ -43,3 +43,4 @@ npm test    # unit tests for parsing, matching and the Gemini stream reader
 
 - **Gemini models**: `MODELS` in `app.js`. Google retires models over time; if the page says a model is no longer offered, put a current Flash model there.
 - **Spelling rules**: the prompt in `lib.js` and the **Sounds** guide in `index.html` describe the same rules. Change both together.
+- **Logo**: `icon.svg` is the source. `apple-touch-icon.png` (the iPhone home screen icon) is the same image rendered at 180x180, so re-export it after changing the SVG.
