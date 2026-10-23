@@ -11,7 +11,7 @@
   --accent: #a8323a;
   --on-accent: #ffffff;
   --gold: #8a5f00;
-  --live-bg: rgba(217, 163, 58, 0.28);
+  --live-bg: rgba(240, 180, 41, 0.32);
   --live-ink: #1d2433;
   --shadow: 0 1px 2px rgba(29, 36, 51, 0.06), 0 10px 28px rgba(29, 36, 51, 0.1);
   --scrim: rgba(20, 21, 26, 0.45);
@@ -30,11 +30,11 @@
     --ink-2: #b2ada3;
     --ink-3: #96918a;
     --line: #33343c;
-    --accent: #e57a7f;
-    --on-accent: #2a0a0d;
+    --accent: #d4675f;
+    --on-accent: #1f0705;
     --gold: #e8b95a;
-    --live-bg: #352a14;
-    --live-ink: #e8b95a;
+    --live-bg: #3e3115;
+    --live-ink: #f2c35e;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.4);
     --scrim: rgba(5, 5, 8, 0.65);
     color-scheme: dark;
@@ -546,9 +546,10 @@ body.live .line:not(.on) .rom {
 }
 
 /* Naskh is tall, so a solid fill would swamp the line: tint the Arabic word instead. */
+/* the tint marks the word; its text keeps the ink color, readable on the sung line too */
 .ar .w[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
-  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--ink);
 }
 
 .card {
