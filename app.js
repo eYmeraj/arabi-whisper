@@ -1,5 +1,6 @@
 // Arabi Whisper: follows what Spotify is playing, fetches the lyrics from LRCLIB and asks Gemini how each line
-// is pronounced, what it means and what every word means. Everything runs in the browser; there is no server.
+// is pronounced, what it means and what every word means. Everything runs in the browser; the only server is the
+// optional sync database (worker/).
 import {
   hasArabic,
   parseLyrics,
@@ -12,6 +13,11 @@ import {
   readResult,
   lineWords,
   createGeminiStream,
+  quotaReset,
+  review,
+  mergeCards,
+  sameUse,
+  toggleUse,
 } from "./lib.js";
 
 // ---- Configuration ----
@@ -19,6 +25,8 @@ const SPOTIFY_CLIENT_ID = "545a023e91a7461cb5409aed0569ca8f"; // public by desig
 const SPOTIFY_SCOPE = "user-read-currently-playing user-modify-playback-state"; // see what's playing; play, pause, skip, seek
 // Tried in order: the second one takes over when the first is out of free requests or overloaded.
 const MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite"];
+// The Cloudflare Worker that keeps converted songs for all your devices (worker/, see README). "" turns syncing off.
+const SYNC_URL = "https://arabi-whisper-sync.eycode.workers.dev";
 const POLL_MS = 5000;
 const REDIRECT_URI = location.origin + location.pathname.replace(/index\.html$/, "");
 const LRCLIB_HEADERS = { "Lrclib-Client": "Arabi Whisper (https://github.com/eYmeraj/arabi-whisper)" };
@@ -64,11 +72,18 @@ const store = {
 };
 
 // Songs are kept as "song:<key>"; "songs" lists their keys, least recently opened first.
+const songData = ({ converting, waiting, error, ...data }) => data;
+
+// Saves `value` under `key`. When storage is full, drops the least recently opened songs until it fits (they can be
+// fetched or converted again). Returns the song keys still kept.
+function fit(key, value) {
+  const index = (store.get("songs") || []).filter((k) => "song:" + k !== key);
+  while (!store.set(key, value) && index.length) store.remove("song:" + index.shift());
+  return index;
+}
+
 function saveSong(song) {
-  const { converting, error, ...data } = song;
-  const index = (store.get("songs") || []).filter((k) => k !== song.key);
-  while (!store.set("song:" + song.key, data) && index.length) store.remove("song:" + index.shift()); // full: drop the oldest
-  store.set("songs", [...index, song.key]);
+  store.set("songs", [...fit("song:" + song.key, songData(song)), song.key]);
 }
 
 // ---- State ----
@@ -83,6 +98,8 @@ const state = {
   loopSeeking: false, // a jump back to the loop's start is on its way to Spotify
   notice: null, // a Spotify or login problem to show
   card: null, // the <li> whose word card is open
+  tab: "lyrics", // or "flashcards"
+  practice: null, // {queue: [card keys], flipped, all}: the flashcard session
 };
 const songs = new Map(); // songs opened in this session, so a conversion running in the background keeps its object
 
@@ -103,6 +120,9 @@ const el = {
   pasteText: $("pasteText"),
   geminiKey: $("geminiKey"),
   keyState: $("keyState"),
+  syncStep: $("syncStep"),
+  syncToken: $("syncToken"),
+  syncState: $("syncState"),
   spotifyBtn: $("spotifyBtn"),
   spotifyState: $("spotifyState"),
   player: $("player"),
@@ -110,6 +130,10 @@ const el = {
   prevBtn: $("prevBtn"),
   nextBtn: $("nextBtn"),
   loopBtn: $("loopBtn"),
+  tabLyrics: $("tabLyrics"),
+  tabFlash: $("tabFlash"),
+  dueCount: $("dueCount"),
+  flashcards: $("flashcards"),
 };
 
 function h(tag, props = {}, ...children) {
@@ -156,6 +180,8 @@ function renderNotice() {
   el.notice.hidden = !n;
   if (!n) return;
   el.notice.className = "notice" + (n.warn ? " warn" : "");
+  if (n.wait) el.notice.dataset.wait = n.wait; // the dot: what we're waiting for
+  else delete el.notice.dataset.wait;
   el.notice.replaceChildren(
     h("span", { class: "notice-text", text: n.text }),
     ...(n.actions || []).map(([label, fn]) => h("button", { class: "btn-ghost sm", type: "button", onclick: fn, text: label })),
@@ -168,7 +194,8 @@ function songNotice(song) {
   const total = song.unique?.length || 0;
   const done = Object.keys(song.conv || {}).length;
   if (!total || done === total) return null;
-  if (song.converting) return { text: `Writing the pronunciation… ${done} of ${total} lines` };
+  if (song.waiting === "db") return { wait: "db", text: "Checking your saved songs…" };
+  if (song.converting) return { wait: song.waiting, text: `Writing the pronunciation… ${done} of ${total} ${total === 1 ? "line" : "lines"}` };
   if (song.error) return { warn: true, text: song.error, actions: [["Try again", () => convert(song)]] };
   if (!store.get("gemini:key")) return { warn: true, text: "Add your Gemini key to see the pronunciation.", actions: [["Open settings", openSettings]] };
   return null;
@@ -306,6 +333,7 @@ function openCard(li, i) {
       h("span", { class: "c-rom", text: bare(w.rom) || w.rom }),
       w.en && h("span", { class: "c-en", text: w.en }),
       w.note && h("span", { class: "c-note", text: w.note }),
+      ar && state.song && flashButton(li, i), // not on the welcome screen's example
     ),
   );
   state.card = li;
@@ -337,6 +365,213 @@ el.content.addEventListener("click", (e) => {
   stopFollow(); // studying a word: stay here instead of scrolling with the music
 });
 
+// ---- Flashcards: one per word, gathering the lines it was saved from; kept here and in the sync database ----
+const flashcards = () => store.get("flashcards") || {};
+const liveCards = () => Object.values(flashcards()).filter((c) => !c.deleted);
+const PLUS = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>';
+const CHECK = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+// The line of the open word card, as a flashcard keeps it.
+function useOf(li, i) {
+  const conv = state.song.conv[li.line.n];
+  const w = li.words[i];
+  return { song: state.song.key, line: conv.ar || li.line.text, lineRom: conv.rom, lineEn: conv.en, en: w.en, note: w.note };
+}
+
+const sendFlashcard = (card) =>
+  syncFetch("/flashcards/" + encodeURIComponent(card.key), { method: "PUT", body: JSON.stringify(card) }).catch(() => {}); // the next sync sends it again
+
+function saveFlashcard(card) {
+  store.set("songs", fit("flashcards", { ...flashcards(), [card.key]: card }));
+  sendFlashcard(card);
+  renderTabs();
+}
+
+// "+" in a word card: adds the word, from this line, to the flashcards; "✓" takes this line off again.
+function flashButton(li, i) {
+  const w = li.words[i];
+  const key = bare(w.ar);
+  const use = useOf(li, i);
+  const card = flashcards()[key];
+  const uses = card && !card.deleted ? card.uses : [];
+  const saved = uses.some((u) => sameUse(u, use));
+  const label = saved ? "Remove from flashcards" : "Add to flashcards";
+  const toggle = () => {
+    saveFlashcard(toggleUse(card, { key, rom: bare(w.rom) || w.rom }, use, Date.now()));
+    openCard(li, i);
+    li.querySelector(".c-add")?.focus();
+  };
+  const b = h("button", { class: "c-add" + (saved ? " on" : ""), type: "button", "aria-label": label, title: label, onclick: toggle });
+  b.innerHTML = saved ? CHECK : PLUS;
+  return b;
+}
+
+// Fetches the database's flashcards and merges them with this device's. True when anything changed here.
+async function syncFlashcards() {
+  try {
+    const res = await syncFetch("/flashcards");
+    if (!res?.ok) return false;
+    const local = flashcards();
+    const { cards, toPush } = mergeCards(local, Object.fromEntries((await res.json()).map((c) => [c.key, c])));
+    store.set("songs", fit("flashcards", cards));
+    toPush.forEach(sendFlashcard);
+    renderTabs();
+    return JSON.stringify(cards) !== JSON.stringify(local);
+  } catch {
+    return false; // offline or the database is down: practise with this device's cards
+  }
+}
+
+function renderTabs() {
+  const now = Date.now();
+  const due = liveCards().filter((c) => c.due <= now).length;
+  el.dueCount.hidden = !due;
+  el.dueCount.textContent = due;
+  el.tabFlash.setAttribute("aria-label", due ? `Flashcards, ${due} due` : "Flashcards");
+  el.tabLyrics.setAttribute("aria-selected", String(state.tab === "lyrics"));
+  el.tabFlash.setAttribute("aria-selected", String(state.tab === "flashcards"));
+  el.content.hidden = state.tab !== "lyrics";
+  el.flashcards.hidden = state.tab !== "flashcards";
+}
+
+async function showTab(tab) {
+  if (tab === state.tab) return;
+  state.tab = tab;
+  store.set("tab", tab);
+  closeCard();
+  renderTabs();
+  if (tab === "lyrics") {
+    const li = state.lineEls[state.active];
+    if (li && state.follow && isLive()) li.scrollIntoView({ block: "center" });
+    else scrollTo({ top: 0 });
+    return;
+  }
+  state.practice = null;
+  renderFlashcards();
+  scrollTo({ top: 0 });
+  // cards added or practised on another device: start over with them, unless practice has begun
+  if ((await syncFlashcards()) && state.tab === "flashcards" && !state.practice?.started) {
+    state.practice = null;
+    renderFlashcards();
+  }
+}
+
+// Due cards, the longest overdue first; or every card, shuffled.
+function startPractice(all) {
+  const now = Date.now();
+  const cards = liveCards().filter((c) => all || c.due <= now);
+  if (all) {
+    for (let i = cards.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [cards[i], cards[j]] = [cards[j], cards[i]];
+    }
+  } else cards.sort((a, b) => a.due - b.due);
+  state.practice = { queue: cards.map((c) => c.key), flipped: false, all, started: false };
+}
+
+function renderFlashcards() {
+  if (state.tab !== "flashcards") return;
+  if (!state.practice) startPractice(false);
+  const all = flashcards();
+  state.practice.queue = state.practice.queue.filter((k) => all[k] && !all[k].deleted);
+  // cards that came due meanwhile (from another device, say): practise them too instead of saying "all done"
+  if (!state.practice.queue.length && !state.practice.all && liveCards().some((c) => c.due <= Date.now())) startPractice(false);
+  const p = state.practice;
+  const card = all[p.queue[0]];
+  el.flashcards.replaceChildren(liveCards().length ? (card ? practiceView(card) : doneView()) : noCardsView());
+  if (p.flipped) el.flashcards.querySelector(".fc-actions .btn")?.focus({ preventScroll: true });
+}
+
+function noCardsView() {
+  return h(
+    "section",
+    { class: "empty" },
+    h("h1", { class: "display", text: "No flashcards yet" }),
+    h("p", { text: "Tap a word in the lyrics, then + to add it here. Practise them any time, even with no song playing." }),
+    h("div", { class: "actions" }, h("button", { class: "btn-ghost", type: "button", onclick: () => showTab("lyrics"), text: "Go to the lyrics" })),
+  );
+}
+
+function doneView() {
+  const cards = liveCards();
+  const next = Math.min(...cards.map((c) => c.due));
+  const days = Math.max(1, Math.round((new Date(next).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86400000));
+  const when = new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(days, "day");
+  return h(
+    "section",
+    { class: "empty" },
+    h("h1", { class: "display", text: state.practice.all ? "That's every card" : "All done for today" }),
+    h("p", { text: `Next card due ${when}. You have ${cards.length} ${cards.length === 1 ? "card" : "cards"}.` }),
+    h(
+      "div",
+      { class: "actions" },
+      h("button", { class: "btn-ghost", type: "button", onclick: () => (startPractice(true), renderFlashcards()), text: "Practise all anyway" }),
+    ),
+  );
+}
+
+// The card's word, marked in a lyric line.
+const marked = (line, key) => line.split(/(\s+)/).map((part) => (bare(part) === key ? h("mark", { text: part }) : part));
+
+function practiceView(card) {
+  const p = state.practice;
+  const flip = () => {
+    p.flipped = p.started = true;
+    renderFlashcards();
+  };
+  const unique = (field) => [...new Set(card.uses.map((u) => u[field]).filter(Boolean))];
+  const face = p.flipped
+    ? [
+        h("p", { class: "fc-en", text: unique("en").join(" · ") || "No meaning given" }),
+        ...unique("note").map((note) => h("p", { class: "fc-note", text: note })),
+        h(
+          "ul",
+          { class: "fc-uses" },
+          card.uses.map((u) =>
+            h(
+              "li",
+              {},
+              h("p", { class: "fc-line", lang: "ar", dir: "rtl" }, marked(u.line, card.key)),
+              h("p", { class: "fc-line-rom", text: u.lineRom }),
+              u.lineEn && h("p", { class: "fc-line-en", text: u.lineEn }),
+            ),
+          ),
+        ),
+      ]
+    : [h("p", { class: "fc-ar", lang: "ar", dir: "rtl", text: card.ar }), h("p", { class: "fc-rom", text: card.rom })];
+  const rate = (gotIt) => {
+    const key = p.queue.shift();
+    saveFlashcard({ ...card, ...review(card, gotIt), updated: Date.now() });
+    if (!gotIt) p.queue.push(key); // comes back later in this session
+    p.flipped = false;
+    renderFlashcards();
+  };
+  const remove = () => {
+    p.queue.shift();
+    saveFlashcard({ ...card, deleted: true, updated: Date.now() });
+    p.flipped = false;
+    renderFlashcards();
+  };
+  return h(
+    "section",
+    { class: "practice" },
+    h("p", { class: "eyebrow", text: `${p.queue.length} to go${p.all ? " · all cards" : ""}` }),
+    h("div", { class: "fc" + (p.flipped ? " back" : ""), onclick: p.flipped ? null : flip }, face),
+    p.flipped
+      ? h(
+          "div",
+          { class: "fc-actions" },
+          h("button", { class: "btn-ghost", type: "button", onclick: () => rate(false), text: "Again" }),
+          h("button", { class: "btn", type: "button", onclick: () => rate(true), text: "Got it" }),
+          h("button", { class: "fc-remove", type: "button", onclick: remove, text: "Remove card" }),
+        )
+      : h("div", { class: "fc-actions" }, h("button", { class: "btn-ghost", type: "button", onclick: flip, text: "Show answer" })),
+  );
+}
+
+el.tabLyrics.addEventListener("click", () => showTab("lyrics"));
+el.tabFlash.addEventListener("click", () => showTab("flashcards"));
+
 // ---- Following the music ----
 function isLive() {
   const { song, playback } = state;
@@ -354,7 +589,7 @@ function tick() {
   const playing = live && state.playback.playing;
   document.body.classList.toggle("live", playing && state.follow);
   document.body.classList.toggle("can-seek", live && canControl());
-  el.follow.hidden = !(playing && !state.follow);
+  el.follow.hidden = !(playing && !state.follow && state.tab === "lyrics");
   el.loopBtn.classList.toggle("off", !live); // hidden but keeps its space, so the main buttons stay centered
   if (!live) return;
   const now = position();
@@ -369,7 +604,7 @@ function tick() {
   state.active = i;
   const li = state.lineEls[i];
   li?.classList.add("on");
-  if (li && playing && state.follow) li.scrollIntoView({ block: "center", behavior: motion() });
+  if (li && playing && state.follow && state.tab === "lyrics") li.scrollIntoView({ block: "center", behavior: motion() });
 }
 
 function stopFollow() {
@@ -450,8 +685,14 @@ async function spotifyToken(params) {
   });
 }
 
+// One renewal at a time: a second one would send the refresh token the first just used up, fail, and log Spotify out.
+let refreshing = null;
+const refresh = () =>
+  (refreshing ??= spotifyToken({ grant_type: "refresh_token", refresh_token: store.get("spotify:tokens").refresh, client_id: SPOTIFY_CLIENT_ID }).finally(
+    () => (refreshing = null),
+  ));
+
 async function spotifyFetch(url, init = {}) {
-  const refresh = () => spotifyToken({ grant_type: "refresh_token", refresh_token: store.get("spotify:tokens").refresh, client_id: SPOTIFY_CLIENT_ID });
   if (Date.now() > store.get("spotify:tokens").expires) await refresh();
   const send = () => fetch(url, { ...init, headers: { authorization: "Bearer " + store.get("spotify:tokens").access } });
   let res = await send();
@@ -666,9 +907,9 @@ async function loadLyrics(song) {
 
 // ---- Pronunciation (Gemini) ----
 class GeminiError extends Error {
-  constructor(status, reason, message, model) {
+  constructor(status, reason, message, model, daily = false) {
     super(message);
-    Object.assign(this, { status, reason, model, retryable: [0, 429, 500, 503].includes(status) }); // 0: the answer stopped early
+    Object.assign(this, { status, reason, model, daily, retryable: [0, 429, 500, 503].includes(status) }); // 0: the answer stopped early
   }
 }
 
@@ -682,7 +923,8 @@ async function askGemini(model, key, system, input, onObject) {
     const body = await res.json().catch(() => null);
     const err = (Array.isArray(body) ? body[0] : body)?.error || {};
     const reason = err.details?.find((d) => d.reason)?.reason || err.status || "";
-    throw new GeminiError(res.status, reason, err.message || res.statusText, model);
+    // a 429 names the limit it hit: requests per minute, or per day
+    throw new GeminiError(res.status, reason, err.message || res.statusText, model, /PerDay/i.test(JSON.stringify(body)));
   }
   const stream = createGeminiStream(onObject);
   const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
@@ -699,24 +941,74 @@ async function askGemini(model, key, system, input, onObject) {
 function geminiMessage(e) {
   if (!(e instanceof GeminiError)) return "Couldn't reach Gemini. Check your connection and try again.";
   if (e.reason === "API_KEY_INVALID" || e.status === 401 || e.status === 403) return "Gemini didn't accept your key. Check it in Settings.";
-  if (e.status === 429) return "Gemini's free requests are used up for now. Try again later.";
+  if (e.status === 429 && e.daily) {
+    const at = quotaReset().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    return `Gemini's free requests for today are used up. They come back at ${at}.`;
+  }
+  if (e.status === 429) return "Gemini got too many requests at once. Try again in a minute.";
   if (e.status === 404) return `Gemini no longer offers ${e.model}. Update MODELS in app.js.`;
   if (e.status >= 500) return "Gemini is busy right now. Try again in a minute.";
   if (e.status === 0) return "Gemini stopped before the end of the song. Try again for the rest.";
   return `Gemini error: ${e.message}`;
 }
 
-// Converts the lines of `song` that have no pronunciation yet. Results stream in line by line and are saved as they come.
+// ---- Sync (optional): converted songs are kept in your database too, so every device converts a song only once ----
+async function syncFetch(path, init = {}) {
+  const token = store.get("sync:token");
+  if (!SYNC_URL || !token) return null;
+  return fetch(SYNC_URL + path, { ...init, headers: { ...init.headers, authorization: "Bearer " + token } });
+}
+
+// Takes the database's copy of `song` when it has more lines converted. True when it did.
+async function pull(song) {
+  try {
+    const res = await syncFetch("/songs/" + encodeURIComponent(song.key));
+    if (!res?.ok) return false;
+    const remote = await res.json();
+    if (Object.keys(remote.conv || {}).length <= Object.keys(song.conv || {}).length) return false;
+    Object.assign(song, remote, { uploaded: true });
+    saveSong(song);
+    return true;
+  } catch {
+    return false; // offline or the database is down: Gemini still works
+  }
+}
+
+// Sends the song to the database. Until that works, `uploaded` stays false and opening the song tries again.
+async function push(song) {
+  try {
+    const res = await syncFetch("/songs/" + encodeURIComponent(song.key), { method: "PUT", body: JSON.stringify(songData(song)) });
+    if (!res?.ok) return;
+    song.uploaded = true;
+    saveSong(song);
+  } catch {
+    // offline or the database is down: the song stays saved on this device
+  }
+}
+
+// Converts the lines of `song` that have no pronunciation yet, after checking the database for them. Results stream
+// in line by line and are saved as they come.
 async function convert(song) {
-  const key = store.get("gemini:key");
-  const todo = (song.unique || []).filter((u) => !song.conv[u.n]);
-  if (!key || !todo.length || song.converting) {
+  const missing = () => (song.unique || []).filter((u) => !song.conv[u.n]);
+  if (!missing().length || song.converting) {
     if (state.song === song) renderNotice();
+    if (!song.converting && !song.uploaded && song.unique?.length) push(song); // converted, but not in the database yet
     return;
   }
   song.converting = true;
+  song.waiting = "db";
   song.error = null;
   showProgress(song);
+  const pulled = await pull(song);
+  song.waiting = null;
+  if (pulled && state.song === song) render();
+  const key = store.get("gemini:key");
+  const todo = missing();
+  if (!key || !todo.length) {
+    song.converting = false;
+    showProgress(song);
+    return;
+  }
   const wanted = new Set(todo.map((u) => u.n));
   const onObject = (o) => {
     const result = readResult(o, wanted);
@@ -729,6 +1021,8 @@ async function convert(song) {
     showProgress(song);
   };
   const { system, input } = buildPrompt(song, todo);
+  song.waiting = "gemini";
+  showProgress(song);
   try {
     for (const [i, model] of MODELS.entries()) {
       try {
@@ -744,8 +1038,11 @@ async function convert(song) {
     song.error = geminiMessage(e);
   } finally {
     song.converting = false;
+    song.waiting = null;
+    if (wanted.size < todo.length) song.uploaded = false;
     saveSong(song);
     showProgress(song);
+    if (!song.uploaded) push(song);
   }
 }
 
@@ -796,6 +1093,9 @@ function syncSettings() {
   const connected = !!store.get("spotify:tokens");
   el.geminiKey.value = key || "";
   el.keyState.textContent = key ? "Saved on this device." : "Not set yet.";
+  el.syncStep.hidden = !SYNC_URL;
+  el.syncToken.value = store.get("sync:token") || "";
+  el.syncState.textContent = store.get("sync:token") ? "Saved on this device." : "Not set yet.";
   el.spotifyBtn.textContent = connected ? "Disconnect Spotify" : "Connect Spotify";
   el.spotifyBtn.disabled = !SPOTIFY_CLIENT_ID;
   el.spotifyState.textContent = !SPOTIFY_CLIENT_ID
@@ -816,7 +1116,32 @@ function saveKey() {
   } else render();
 }
 
+// Checks the token with the database before keeping it, then fetches the song on screen if the database has it.
+async function saveSync() {
+  const value = el.syncToken.value.trim();
+  if (!value) {
+    store.remove("sync:token");
+    return syncSettings();
+  }
+  el.syncState.textContent = "Checking…";
+  let status = 0;
+  try {
+    status = (await fetch(SYNC_URL + "/", { headers: { authorization: "Bearer " + value } })).status;
+  } catch {
+    // offline, or the address in SYNC_URL is wrong
+  }
+  if (status !== 204) {
+    el.syncState.textContent = status === 401 ? "The database didn't accept this token." : "Couldn't reach the database. Try again.";
+    return;
+  }
+  store.set("sync:token", value);
+  el.syncState.textContent = "Connected on this device.";
+  if (state.song) convert(state.song);
+}
+
 $("saveKey").addEventListener("click", saveKey);
+$("saveSync").addEventListener("click", saveSync);
+el.syncToken.addEventListener("keydown", (e) => e.key === "Enter" && saveSync());
 el.geminiKey.addEventListener("keydown", (e) => e.key === "Enter" && saveKey());
 el.spotifyBtn.addEventListener("click", () => {
   if (!store.get("spotify:tokens")) return connectSpotify();
@@ -838,10 +1163,17 @@ if (last) {
   state.song = last;
 }
 render();
+renderTabs();
+if (store.get("tab") === "flashcards") showTab("flashcards");
+else syncFlashcards();
 await finishSpotifyLogin();
 render();
 if (state.song) convert(state.song); // finish lines left over from last time
 poll();
 setInterval(poll, POLL_MS);
 setInterval(tick, 250);
-document.addEventListener("visibilitychange", () => document.hidden || poll());
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) return;
+  poll();
+  renderTabs(); // cards may have come due while the page was away
+});

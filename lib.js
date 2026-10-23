@@ -224,3 +224,58 @@ export function createGeminiStream(onObject) {
     },
   };
 }
+
+/**
+ * When Gemini's daily free requests come back: the next midnight in California.
+ * shortcut: an hour off if the device's own clock changes for summer time that night; fine for a hint.
+ */
+export function quotaReset(now = new Date()) {
+  const la = new Date(now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
+  const midnight = new Date(la);
+  midnight.setHours(24, 0, 0, 0);
+  return new Date(now.getTime() - (now.getTime() % 1000) + (midnight - la));
+}
+
+// ---- Flashcards ----
+const DAY = 86400000;
+const WAITS = [1, 3, 7, 14, 30, 90]; // days until a card comes back, by box (Leitner boxes)
+
+/** A card's next box and due time after a review: "Got it" moves it up a box, "Again" back to the start, due now. */
+export function review(card, gotIt, now = Date.now()) {
+  if (!gotIt) return { box: 0, due: now };
+  const box = Math.min((card.box || 0) + 1, WAITS.length);
+  return { box, due: now + WAITS[box - 1] * DAY };
+}
+
+export const sameUse = (a, b) => a.song === b.song && a.line === b.line;
+
+/**
+ * The flashcard after "+" or "✓" in a word card. `use` is the lyric line the word was tapped in: it is added to the
+ * card, or taken off when it is already there. Taking off the last line removes the card; adding to a removed card
+ * starts a fresh one. `word` is {key, rom}.
+ */
+export function toggleUse(card, word, use, now) {
+  const uses = card && !card.deleted ? card.uses : [];
+  if (uses.some((u) => sameUse(u, use))) {
+    const rest = uses.filter((u) => !sameUse(u, use));
+    return { ...card, uses: rest, deleted: !rest.length, updated: now };
+  }
+  if (uses.length) return { ...card, uses: [...uses, use], updated: now };
+  return { key: word.key, ar: word.key, rom: word.rom, uses: [use], box: 0, due: now, updated: now };
+}
+
+/**
+ * Merges this device's flashcards with the database's ({key: card}). The newer `updated` wins for each card; removed
+ * cards stay as {deleted: true} so another device can't bring them back. toPush: the cards the database lacks or has older.
+ */
+export function mergeCards(local, remote) {
+  const cards = { ...remote };
+  const toPush = [];
+  for (const [key, card] of Object.entries(local)) {
+    if (!remote[key] || card.updated > remote[key].updated) {
+      cards[key] = card;
+      toPush.push(card);
+    }
+  }
+  return { cards, toPush };
+}
