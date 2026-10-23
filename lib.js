@@ -2,7 +2,15 @@
 
 export const hasArabic = (s) => /[؀-ۿ]/.test(s || "");
 
-const tidy = (s) => s.replace(/\s+/g, " ").trim();
+// A line with no letters or digits ("♪", """"") is a gap, not lyrics. Transcribers often write و and prefixes
+// ending in ـ apart ("و أنساك", "فـ بالي"); they are joined to the next word, as Arabic writes them.
+const tidy = (s) =>
+  /[\p{L}\p{N}]/u.test(s)
+    ? s
+        .replace(/\s+/g, " ")
+        .trim()
+        .replace(/(^| )(و|[^ ]*ـ) (?=[؀-ۿ])/g, (_, start, prefix) => start + prefix.replace(/ـ$/, ""))
+    : "";
 
 /** LRCLIB lyrics -> [{t, text}]: t is the line's start in ms, or null when the lyrics have no timing. */
 export function parseLyrics(synced, plain) {
@@ -78,25 +86,27 @@ export function lineEnd(lines, i, songMs = Infinity) {
 const SYSTEM = `You are an Egyptian Arabic teacher. An English speaker is learning Egyptian Arabic by reading song lyrics. For every lyric line you receive, give its pronunciation in plain English letters, its meaning in English, and a word-by-word breakdown.
 
 PRONUNCIATION ("rom")
-- Spell each word the way the singer actually pronounces it. Egyptian songs use Cairo pronunciation: ج is "g", ق is a glottal stop (قلبي = albi, بقى = ba'a), ث is "t" or "s", ذ is "d" or "z", ظ is "z". If a line is sung in Classical Arabic, spell that pronunciation instead (ق is then "q").
-- Use only English letters, spaces, hyphens and apostrophes. Never use numbers for sounds (no 3, 7 or 2), accents or IPA.
+- Spell each word the way the singer actually pronounces it. Egyptian songs use Cairo pronunciation: ج is "g", ث is "t" or "s", ذ is "d" or "z", ظ is "z", غ is always "gh", and ق is a glottal stop (قلبي = albi, بقى = ba'a, قريب = areeb, أشتاق = ashtaa', دلوقتي = delwa'ti). In a Cairo word ق is never "q", "g" or "k", and never silent, rhymes included. Only a line sung in Classical Arabic gets Classical pronunciation (ق is then "q").
+- Use Cairo vowels, not Classical ones: present-tense prefixes are ye-, te-, ne- (yeb'a, tendahlak, tekoon), and a vowel at the end of a word is short (albi, roohi, taani, fi, hawa), so a word never ends in aa, ee or oo.
+- Use only English letters, spaces, hyphens, apostrophes and the line's own punctuation. Never use numbers for sounds (no 3, 7 or 2), accents or IPA, and no silent letters (kon, not kone).
 - Vowels: a (ana), aa (salaam), e (enta), i (min), ee (habeeb), ei for the "ay" of "day" (beit), o for the "o" of "more" (yom), oo (noor), u (kull).
 - Consonants: h for both ح and ه, kh (khalaas), gh (ghaali), sh, g is always hard, r is rolled.
-- Write ' for ع and for a glottal stop (ء, or ق in Cairo speech) everywhere except at the very start of a word: ma'aak, so'aal, el-'ein, but ein, albi.
+- Write ' for ع everywhere, also at the start of a word ('omri, 'ein, ma'aak). Write ' for a glottal stop (ء, or ق in Cairo speech) only inside a word, also after a prefix (so'aal, ba'a, el-'alb); at the very start of a word it is not written: ana, albi (قلبي), abl (قبل), add (قد).
 - Write doubled consonants twice: habbeit, kull.
-- Write the article as heard, joined with a hyphen: el-'ein, el-hawa. It blends into some letters: esh-shams, en-noor, er-rooh.
+- Write the article as heard, joined with a hyphen: el-'ein, el-hawa, wel-leil. It blends into t, d, s, z, sh, r, n and their heavy forms, and in Cairo also into ج: esh-shams, en-noor, er-rooh, ber-raaha, eg-gaay.
+- Hyphens go only after a prefix (el-, we-, be-, le-) and between two letters that would otherwise read as one sound: t-h, s-h, k-h, g-h, d-h (as-ha, saa'et-ha, bet-hebb, mas-hoor).
+- Each word is spelled on its own: never carry a sound or a hyphen across a space (في الدنيا = fi ed-donya, يا اللي = ya elli).
 - Keep English words and names as they are.
 
 MEANING ("en")
 - Natural, faithful English for the line, read in the context of the whole song. Keep it short. No explanations here.
 
 WORDS ("words")
-- Every word of the line, in order, as {"ar","rom","en","note"}.
-- ar: the word exactly as written in the line, in Arabic script.
+- One entry per space-separated word of the line, in the same order, as {"ar","rom","en","note"}. Never merge or split words. A word with attached parts stays one entry (وبحبك = we-bahebbak); explain the parts in its note.
+- ar: the word exactly as written in the line, in Arabic script, with any punctuation attached to it.
 - rom: its pronunciation, spelled exactly as in "rom". Joining the rom of all words with single spaces must give exactly "rom".
 - en: its meaning here, 1 to 4 words.
-- note: at most 12 words on grammar (prefixes, suffixes, tense, person), dialect or idiom. Use "" when there is nothing useful to add.
-- A word with attached parts stays one word (وبحبك = we-bahebbak). Explain the parts in its note.
+- note: at most 12 words on grammar (prefixes, suffixes, tense, person), dialect or idiom. Only state what you are sure of. Use "" when there is nothing useful to add.
 
 LINES NOT IN ARABIC SCRIPT
 - Arabic written in English letters (for example "Tamally maak"): treat it as Arabic. Add "ar" with the whole line in Arabic script and use that spelling in words[].ar.
@@ -125,6 +135,20 @@ export function readResult(o, wanted) {
     .map((w) => ({ ar: str(w.ar), rom: str(w.rom), en: str(w.en), note: str(w.note) }))
     .filter((w) => w.rom);
   return { n, ar: str(o.ar), rom: str(o.rom), en: str(o.en), words };
+}
+
+const wordy = (s) => /\p{L}/u.test(s || "");
+
+/**
+ * The word cards of a converted line, or null unless they line up one to one with the words of the line (punctuation
+ * aside). Cards that match word for word show the line's own words: Gemini sometimes garbles or simplifies the Arabic.
+ */
+export function lineWords(conv, text) {
+  const words = conv?.words || [];
+  const own = (conv?.ar || text).split(/\s+/).filter(Boolean);
+  if (!words.length) return null;
+  if (words.length === own.length) return words.map((w, i) => ({ ...w, ar: own[i] }));
+  return words.filter((w) => wordy(w.ar || w.rom)).length === own.filter(wordy).length ? words : null;
 }
 
 /** Feeds text chunks; calls onObject for every complete top-level {...}, wherever line breaks and chunk edges fall. */

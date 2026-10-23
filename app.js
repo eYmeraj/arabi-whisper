@@ -10,6 +10,7 @@ import {
   lineEnd,
   buildPrompt,
   readResult,
+  lineWords,
   createGeminiStream,
 } from "./lib.js";
 
@@ -262,14 +263,14 @@ function lineItem(line, conv) {
 
 // Arabic on top (as written), then the sound, then the meaning. Words are buttons once Gemini has explained them.
 function fillLine(li, conv) {
-  li.conv = conv;
-  const words = conv?.words?.length ? conv.words : null;
+  const words = (li.words = lineWords(conv, li.line.text));
   const arabic = conv?.ar || (hasArabic(li.line.text) ? li.line.text : "");
   const rows = [];
   if (words?.some((w) => w.ar)) rows.push(h("p", { class: "ar", dir: "rtl", lang: "ar" }, wordButtons(words, "ar")));
   else if (arabic) rows.push(h("p", { class: "ar", dir: "rtl", lang: "ar", text: arabic }));
   if (conv) {
-    rows.push(h("p", { class: "rom" }, words ? wordButtons(words, "rom") : conv.rom));
+    // non-breaking hyphens keep "we-" with its word when the line wraps (word buttons never break)
+    rows.push(h("p", { class: "rom" }, words ? wordButtons(words, "rom") : conv.rom.replaceAll("-", "\u2011")));
     if (conv.en && conv.en.toLowerCase() !== conv.rom.toLowerCase()) rows.push(h("p", { class: "en", text: conv.en }));
   } else {
     if (!arabic) rows.push(h("p", { class: "rom source", text: li.line.text })); // Arabic in English letters, until converted
@@ -289,17 +290,20 @@ function wordButtons(words, field) {
 }
 
 // ---- Word cards ----
+const bare = (s) => s.replace(/^[^\p{L}\p{M}']+|[^\p{L}\p{M}']+$/gu, ""); // "(هواك)،" -> "هواك"
+
 function openCard(li, i) {
   closeCard();
-  const w = li.conv.words[i];
+  const w = li.words[i];
+  const ar = bare(w.ar);
   for (const b of li.querySelectorAll(".w")) b.setAttribute("aria-pressed", String(Number(b.dataset.w) === i));
   li.dataset.sel = i;
   li.append(
     h(
       "div",
       { class: "card" },
-      w.ar && h("span", { class: "c-ar", lang: "ar", dir: "rtl", text: w.ar }),
-      h("span", { class: "c-rom", text: w.rom }),
+      ar && h("span", { class: "c-ar", lang: "ar", dir: "rtl", text: ar }),
+      h("span", { class: "c-rom", text: bare(w.rom) || w.rom }),
       w.en && h("span", { class: "c-en", text: w.en }),
       w.note && h("span", { class: "c-note", text: w.note }),
     ),
