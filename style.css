@@ -307,7 +307,8 @@ button {
   min-width: 0;
 }
 
-.notice.warn .notice-text::before {
+.notice.warn .notice-text::before,
+.notice[data-wait] .notice-text::before {
   content: "";
   display: inline-block;
   width: 8px;
@@ -315,6 +316,23 @@ button {
   margin-right: 8px;
   border-radius: 50%;
   background: var(--gold);
+}
+
+/* waiting for the sync database (orange) or for Gemini (Google's colors, turning) */
+.notice[data-wait="db"] .notice-text::before {
+  background: #f38020;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.notice[data-wait="gemini"] .notice-text::before {
+  background: conic-gradient(#4285f4 0 25%, #ea4335 0 50%, #fbbc05 0 75%, #34a853 0);
+  animation: spin 1.2s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
 }
 
 .display {
