@@ -1,19 +1,20 @@
-/* Layout: one reading column. Each lyric is a stanza in three registers (Arabic right to left, the sound, the meaning);
-   the line being sung is lit in gold, like lapis and gold on old Egyptian jewelry. */
+/* Layout: one reading column. Each lyric is a stanza in three registers (Arabic right to left, the sound, the meaning).
+   Colors: "Faded Print", a 1950s Egyptian film poster after sixty years in the sun: navy ink and dusty red on soft
+   grey paper, and the line being sung lit in ochre. */
 :root {
-  --bg: #f1f3f6;
-  --surface: #ffffff;
-  --ink: #15213b;
-  --ink-2: #4a5671;
-  --ink-3: #5f6a84;
-  --line: #dce1e9;
-  --accent: #0b6e77;
+  --bg: #f2f1ee;
+  --surface: #fbfbfa;
+  --ink: #1d2433;
+  --ink-2: #4f5563;
+  --ink-3: #666b77;
+  --line: #e0ddd6;
+  --accent: #a8323a;
   --on-accent: #ffffff;
   --gold: #8a5f00;
-  --live-bg: rgba(214, 160, 40, 0.17);
-  --live-ink: #15213b;
-  --shadow: 0 1px 2px rgba(21, 33, 59, 0.06), 0 10px 28px rgba(21, 33, 59, 0.1);
-  --scrim: rgba(11, 19, 36, 0.45);
+  --live-bg: rgba(217, 163, 58, 0.28);
+  --live-ink: #1d2433;
+  --shadow: 0 1px 2px rgba(29, 36, 51, 0.06), 0 10px 28px rgba(29, 36, 51, 0.1);
+  --scrim: rgba(20, 21, 26, 0.45);
   --font-ui: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-ar: "Noto Naskh Arabic", "Geeza Pro", "Arabic Typesetting", "Times New Roman", serif;
   --font-display: "Reem Kufi", "Atkinson Hyperlegible Next", system-ui, sans-serif;
@@ -23,19 +24,19 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0b1324;
-    --surface: #131d34;
-    --ink: #e8ecf4;
-    --ink-2: #a3aec5;
-    --ink-3: #8b97b0;
-    --line: #26324d;
-    --accent: #4fc4cb;
-    --on-accent: #062a2e;
-    --gold: #e9b949;
-    --live-bg: #1a2541;
-    --live-ink: #f0c75e;
+    --bg: #14151a;
+    --surface: #1f2027;
+    --ink: #ece9e2;
+    --ink-2: #b2ada3;
+    --ink-3: #96918a;
+    --line: #33343c;
+    --accent: #e57a7f;
+    --on-accent: #2a0a0d;
+    --gold: #e8b95a;
+    --live-bg: #352a14;
+    --live-ink: #e8b95a;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.4);
-    --scrim: rgba(3, 6, 14, 0.65);
+    --scrim: rgba(5, 5, 8, 0.65);
     color-scheme: dark;
   }
 }
