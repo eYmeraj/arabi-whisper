@@ -16,6 +16,8 @@ import {
   quotaReset,
   review,
   mergeCards,
+  sameUse,
+  toggleUse,
 } from "./lib.js";
 
 // ---- Configuration ----
@@ -72,11 +74,16 @@ const store = {
 // Songs are kept as "song:<key>"; "songs" lists their keys, least recently opened first.
 const songData = ({ converting, waiting, error, ...data }) => data;
 
+// Saves `value` under `key`. When storage is full, drops the least recently opened songs until it fits (they can be
+// fetched or converted again). Returns the song keys still kept.
+function fit(key, value) {
+  const index = (store.get("songs") || []).filter((k) => "song:" + k !== key);
+  while (!store.set(key, value) && index.length) store.remove("song:" + index.shift());
+  return index;
+}
+
 function saveSong(song) {
-  const data = songData(song);
-  const index = (store.get("songs") || []).filter((k) => k !== song.key);
-  while (!store.set("song:" + song.key, data) && index.length) store.remove("song:" + index.shift()); // full: drop the oldest
-  store.set("songs", [...index, song.key]);
+  store.set("songs", [...fit("song:" + song.key, songData(song)), song.key]);
 }
 
 // ---- State ----
@@ -326,7 +333,7 @@ function openCard(li, i) {
       h("span", { class: "c-rom", text: bare(w.rom) || w.rom }),
       w.en && h("span", { class: "c-en", text: w.en }),
       w.note && h("span", { class: "c-note", text: w.note }),
-      ar && flashButton(li, i),
+      ar && state.song && flashButton(li, i), // not on the welcome screen's example
     ),
   );
   state.card = li;
@@ -361,7 +368,6 @@ el.content.addEventListener("click", (e) => {
 // ---- Flashcards: one per word, gathering the lines it was saved from; kept here and in the sync database ----
 const flashcards = () => store.get("flashcards") || {};
 const liveCards = () => Object.values(flashcards()).filter((c) => !c.deleted);
-const sameUse = (a, b) => a.song === b.song && a.line === b.line;
 const PLUS = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>';
 const CHECK = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
@@ -376,7 +382,7 @@ const sendFlashcard = (card) =>
   syncFetch("/flashcards/" + encodeURIComponent(card.key), { method: "PUT", body: JSON.stringify(card) }).catch(() => {}); // the next sync sends it again
 
 function saveFlashcard(card) {
-  store.set("flashcards", { ...flashcards(), [card.key]: card });
+  store.set("songs", fit("flashcards", { ...flashcards(), [card.key]: card }));
   sendFlashcard(card);
   renderTabs();
 }
@@ -391,12 +397,7 @@ function flashButton(li, i) {
   const saved = uses.some((u) => sameUse(u, use));
   const label = saved ? "Remove from flashcards" : "Add to flashcards";
   const toggle = () => {
-    const now = Date.now();
-    if (saved) {
-      const rest = uses.filter((u) => !sameUse(u, use));
-      saveFlashcard({ ...card, uses: rest, deleted: !rest.length, updated: now });
-    } else if (uses.length) saveFlashcard({ ...card, uses: [...uses, use], updated: now });
-    else saveFlashcard({ key, ar: key, rom: bare(w.rom) || w.rom, uses: [use], box: 0, due: now, updated: now });
+    saveFlashcard(toggleUse(card, { key, rom: bare(w.rom) || w.rom }, use, Date.now()));
     openCard(li, i);
     li.querySelector(".c-add")?.focus();
   };
@@ -412,7 +413,7 @@ async function syncFlashcards() {
     if (!res?.ok) return false;
     const local = flashcards();
     const { cards, toPush } = mergeCards(local, Object.fromEntries((await res.json()).map((c) => [c.key, c])));
-    store.set("flashcards", cards);
+    store.set("songs", fit("flashcards", cards));
     toPush.forEach(sendFlashcard);
     renderTabs();
     return JSON.stringify(cards) !== JSON.stringify(local);
@@ -471,9 +472,11 @@ function startPractice(all) {
 function renderFlashcards() {
   if (state.tab !== "flashcards") return;
   if (!state.practice) startPractice(false);
-  const p = state.practice;
   const all = flashcards();
-  p.queue = p.queue.filter((k) => all[k] && !all[k].deleted);
+  state.practice.queue = state.practice.queue.filter((k) => all[k] && !all[k].deleted);
+  // cards that came due meanwhile (from another device, say): practise them too instead of saying "all done"
+  if (!state.practice.queue.length && !state.practice.all && liveCards().some((c) => c.due <= Date.now())) startPractice(false);
+  const p = state.practice;
   const card = all[p.queue[0]];
   el.flashcards.replaceChildren(liveCards().length ? (card ? practiceView(card) : doneView()) : noCardsView());
   if (p.flipped) el.flashcards.querySelector(".fc-actions .btn")?.focus({ preventScroll: true });
@@ -682,8 +685,14 @@ async function spotifyToken(params) {
   });
 }
 
+// One renewal at a time: a second one would send the refresh token the first just used up, fail, and log Spotify out.
+let refreshing = null;
+const refresh = () =>
+  (refreshing ??= spotifyToken({ grant_type: "refresh_token", refresh_token: store.get("spotify:tokens").refresh, client_id: SPOTIFY_CLIENT_ID }).finally(
+    () => (refreshing = null),
+  ));
+
 async function spotifyFetch(url, init = {}) {
-  const refresh = () => spotifyToken({ grant_type: "refresh_token", refresh_token: store.get("spotify:tokens").refresh, client_id: SPOTIFY_CLIENT_ID });
   if (Date.now() > store.get("spotify:tokens").expires) await refresh();
   const send = () => fetch(url, { ...init, headers: { authorization: "Bearer " + store.get("spotify:tokens").access } });
   let res = await send();
@@ -957,7 +966,7 @@ async function pull(song) {
     if (!res?.ok) return false;
     const remote = await res.json();
     if (Object.keys(remote.conv || {}).length <= Object.keys(song.conv || {}).length) return false;
-    Object.assign(song, remote);
+    Object.assign(song, remote, { uploaded: true });
     saveSong(song);
     return true;
   } catch {
@@ -965,11 +974,15 @@ async function pull(song) {
   }
 }
 
+// Sends the song to the database. Until that works, `uploaded` stays false and opening the song tries again.
 async function push(song) {
   try {
-    await syncFetch("/songs/" + encodeURIComponent(song.key), { method: "PUT", body: JSON.stringify(songData(song)) });
+    const res = await syncFetch("/songs/" + encodeURIComponent(song.key), { method: "PUT", body: JSON.stringify(songData(song)) });
+    if (!res?.ok) return;
+    song.uploaded = true;
+    saveSong(song);
   } catch {
-    // the song stays saved on this device; the next conversion sends it again
+    // offline or the database is down: the song stays saved on this device
   }
 }
 
@@ -979,6 +992,7 @@ async function convert(song) {
   const missing = () => (song.unique || []).filter((u) => !song.conv[u.n]);
   if (!missing().length || song.converting) {
     if (state.song === song) renderNotice();
+    if (!song.converting && !song.uploaded && song.unique?.length) push(song); // converted, but not in the database yet
     return;
   }
   song.converting = true;
@@ -1025,9 +1039,10 @@ async function convert(song) {
   } finally {
     song.converting = false;
     song.waiting = null;
+    if (wanted.size < todo.length) song.uploaded = false;
     saveSong(song);
     showProgress(song);
-    if (wanted.size < todo.length) push(song);
+    if (!song.uploaded) push(song);
   }
 }
 
@@ -1157,4 +1172,8 @@ if (state.song) convert(state.song); // finish lines left over from last time
 poll();
 setInterval(poll, POLL_MS);
 setInterval(tick, 250);
-document.addEventListener("visibilitychange", () => document.hidden || poll());
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) return;
+  poll();
+  renderTabs(); // cards may have come due while the page was away
+});
