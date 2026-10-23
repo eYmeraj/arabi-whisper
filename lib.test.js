@@ -6,8 +6,10 @@ import {
   pickLyrics,
   cleanTitle,
   activeIndex,
+  lineEnd,
   buildPrompt,
   readResult,
+  lineWords,
   objectSplitter,
   createGeminiStream,
   StreamError,
@@ -20,6 +22,19 @@ test("parseLyrics reads timed lines, repeated tags and instrumental gaps", () =>
     { t: 15000, text: "ولو حتى بعيد عني" },
     { t: 20000, text: "" },
     { t: 62000, text: "ولو حتى بعيد عني" },
+  ]);
+});
+
+test("parseLyrics treats lines without letters as gaps", () => {
+  assert.deepEqual(parseLyrics("[00:01.00] ♪\n[00:02.00] تملي", null), [{ t: 1000, text: "" }, { t: 2000, text: "تملي" }]);
+  assert.deepEqual(parseLyrics(null, 'سطر\n"""""\nسطر 2'), [{ t: null, text: "سطر" }, { t: null, text: "" }, { t: null, text: "سطر 2" }]);
+});
+
+test("parseLyrics joins و and prefixes that transcribers write apart", () => {
+  assert.deepEqual(parseLyrics(null, "أهواك و أتمنّى\nتملي فـ بالي وفـ قلبي\nيـا و baby"), [
+    { t: null, text: "أهواك وأتمنّى" },
+    { t: null, text: "تملي فبالي وفقلبي" },
+    { t: null, text: "يـا و baby" },
   ]);
 });
 
@@ -60,6 +75,14 @@ test("activeIndex finds the line being sung", () => {
   assert.equal(activeIndex([{ t: null }], 5000), -1);
 });
 
+test("lineEnd is where the next timed line starts, with limits for the last line", () => {
+  const lines = [{ t: 1000 }, { t: 1000 }, { t: 5000 }, { t: 9000 }];
+  assert.equal(lineEnd(lines, 0), 5000); // a line repeated at the same time is not an end
+  assert.equal(lineEnd(lines, 2), 9000);
+  assert.equal(lineEnd(lines, 3), 17000); // last line: 8 s
+  assert.equal(lineEnd(lines, 3, 12000), 12000); // but never past the song's end
+});
+
 test("buildPrompt numbers the lines and names the song", () => {
   const { input } = buildPrompt({ title: "Tamally Maak", artist: "Amr Diab" }, [{ n: 3, text: "تملي معاك" }]);
   assert.equal(input, 'Song: "Tamally Maak" by Amr Diab\n\nLines (number|text):\n3|تملي معاك');
@@ -79,6 +102,21 @@ test("readResult keeps only wanted, well-formed lines", () => {
   assert.equal(readResult(null, wanted), null);
 });
 
+test("lineWords keeps word cards only when they line up with the line's words, showing the words as written", () => {
+  const w = (ar, rom) => ({ ar, rom, en: "", note: "" });
+  const ars = (words) => words?.map((x) => x.ar);
+  // Gemini garbled a word and dropped a vowel mark: the card shows the line's own word
+  const line = "هواك، يا إنتَ بنساك";
+  assert.deepEqual(ars(lineWords({ words: [w("هواك،", "hawaak,"), w("يا", "ya"), w("انت", "enta"), w("بنساak", "bansaak")] }, line)), line.split(" "));
+  assert.equal(lineWords({ words: [w("هواك،", "hawaak,"), w("يا", "ya")] }, "هواك، يا - عمري"), null);
+  assert.equal(lineWords({ words: [w("هواك،", "hawaak,"), w("يا", "ya"), w("عمري", "omri")] }, "هواك، يا - عمري").length, 3); // punctuation alone may be skipped
+  // و written apart, merged into the next word: every later card would be off by one
+  assert.equal(lineWords({ words: [w("و", "we-ansa"), w("أنسى", "roohi"), w("روحي", "wayyaak")] }, "و أنسى روحي ويّاك"), null);
+  const latin = { ar: "تملي معاك", words: [w("تملي", "tamalli"), w("معاك", "ma'aak")] };
+  assert.deepEqual(ars(lineWords(latin, "Tamallymaak")), ["تملي", "معاك"]); // a line in English letters is matched to its Arabic spelling
+  assert.equal(lineWords({ words: [] }, "Baby"), null);
+});
+
 test("objectSplitter finds objects across chunks, braces in strings, fences and pretty printing", () => {
   const got = [];
   const push = objectSplitter((o) => got.push(o));
@@ -86,14 +124,16 @@ test("objectSplitter finds objects across chunks, braces in strings, fences and 
   assert.deepEqual(got, [{ n: 1, rom: 'a {b} "c"' }, { n: 2, rom: "x" }]);
 });
 
-// Event shapes from https://ai.google.dev/gemini-api/docs/thinking (streaming example).
+// Event shapes from https://ai.google.dev/gemini-api/docs/thinking (streaming example); keep-alive and [DONE] as the live API sends them.
 const sse = [
+  ": keep-alive",
   'event: interaction.created\ndata: {"interaction":{"id":"v1_x","status":"in_progress"},"event_type":"interaction.created"}',
   'event: step.start\ndata: {"index":0,"step":{"signature":"","summary":[{"text":"{\\"n\\":9}","type":"text"}],"type":"thought"},"event_type":"step.start"}',
   'event: step.delta\ndata: {"index":0,"delta":{"signature":"Ep","type":"thought_signature"},"event_type":"step.delta"}',
   'event: step.start\ndata: {"index":1,"step":{"content":[{"text":"{\\"n\\":1,\\"rom\\":\\"ana\\"}\\n{\\"n\\":2,","type":"text"}],"type":"model_output"},"event_type":"step.start"}',
   'event: step.delta\ndata: {"index":1,"delta":{"text":"\\"rom\\":\\"enta\\"}","type":"text"},"event_type":"step.delta"}',
   'event: interaction.completed\ndata: {"interaction":{"id":"v1_x","status":"completed"},"event_type":"interaction.completed"}',
+  "event: done\ndata: [DONE]",
 ].join("\r\n\r\n");
 
 test("createGeminiStream reads model output and skips thoughts, whatever the chunk edges", () => {

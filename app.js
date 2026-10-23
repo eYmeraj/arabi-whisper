@@ -7,8 +7,10 @@ import {
   pickLyrics,
   cleanTitle,
   activeIndex,
+  lineEnd,
   buildPrompt,
   readResult,
+  lineWords,
   createGeminiStream,
 } from "./lib.js";
 
@@ -77,6 +79,8 @@ const state = {
   lineEls: [], // <li> per lyric line of the song on screen
   active: -1, // index of the line being sung
   follow: true, // scroll along with the music
+  loop: null, // {i, start, end}: the line being repeated
+  loopSeeking: false, // a jump back to the loop's start is on its way to Spotify
   notice: null, // a Spotify or login problem to show
   card: null, // the <li> whose word card is open
 };
@@ -105,6 +109,7 @@ const el = {
   playBtn: $("playBtn"),
   prevBtn: $("prevBtn"),
   nextBtn: $("nextBtn"),
+  loopBtn: $("loopBtn"),
 };
 
 function h(tag, props = {}, ...children) {
@@ -239,6 +244,7 @@ function songView(song) {
   // A blank timed line is an instrumental break; a blank untimed line just separates verses.
   const gap = (line) => h("li", { class: "gap", "aria-hidden": "true", text: line.t == null ? "" : "♪" });
   state.lineEls = song.lines.map((line) => (line.text ? lineItem(line, song.conv[line.n]) : gap(line)));
+  if (state.loop) state.lineEls[state.loop.i]?.classList.add("looping");
   const source = song.source === "paste" ? "Lyrics pasted by you." : "Lyrics from LRCLIB.";
   return h(
     "div",
@@ -257,14 +263,14 @@ function lineItem(line, conv) {
 
 // Arabic on top (as written), then the sound, then the meaning. Words are buttons once Gemini has explained them.
 function fillLine(li, conv) {
-  li.conv = conv;
-  const words = conv?.words?.length ? conv.words : null;
+  const words = (li.words = lineWords(conv, li.line.text));
   const arabic = conv?.ar || (hasArabic(li.line.text) ? li.line.text : "");
   const rows = [];
   if (words?.some((w) => w.ar)) rows.push(h("p", { class: "ar", dir: "rtl", lang: "ar" }, wordButtons(words, "ar")));
   else if (arabic) rows.push(h("p", { class: "ar", dir: "rtl", lang: "ar", text: arabic }));
   if (conv) {
-    rows.push(h("p", { class: "rom" }, words ? wordButtons(words, "rom") : conv.rom));
+    // non-breaking hyphens keep "we-" with its word when the line wraps (word buttons never break)
+    rows.push(h("p", { class: "rom" }, words ? wordButtons(words, "rom") : conv.rom.replaceAll("-", "\u2011")));
     if (conv.en && conv.en.toLowerCase() !== conv.rom.toLowerCase()) rows.push(h("p", { class: "en", text: conv.en }));
   } else {
     if (!arabic) rows.push(h("p", { class: "rom source", text: li.line.text })); // Arabic in English letters, until converted
@@ -284,17 +290,20 @@ function wordButtons(words, field) {
 }
 
 // ---- Word cards ----
+const bare = (s) => s.replace(/^[^\p{L}\p{M}']+|[^\p{L}\p{M}']+$/gu, ""); // "(هواك)،" -> "هواك"
+
 function openCard(li, i) {
   closeCard();
-  const w = li.conv.words[i];
+  const w = li.words[i];
+  const ar = bare(w.ar);
   for (const b of li.querySelectorAll(".w")) b.setAttribute("aria-pressed", String(Number(b.dataset.w) === i));
   li.dataset.sel = i;
   li.append(
     h(
       "div",
       { class: "card" },
-      w.ar && h("span", { class: "c-ar", lang: "ar", dir: "rtl", text: w.ar }),
-      h("span", { class: "c-rom", text: w.rom }),
+      ar && h("span", { class: "c-ar", lang: "ar", dir: "rtl", text: ar }),
+      h("span", { class: "c-rom", text: bare(w.rom) || w.rom }),
       w.en && h("span", { class: "c-en", text: w.en }),
       w.note && h("span", { class: "c-note", text: w.note }),
     ),
@@ -314,9 +323,11 @@ function closeCard() {
 el.content.addEventListener("click", (e) => {
   const b = e.target.closest("button.w");
   if (!b) {
-    // Like Spotify's own lyrics view: tap a line to play the song from there.
+    // Like Spotify's own lyrics view: tap a line to play the song from there. While looping, that line becomes the loop.
     const li = e.target.closest("li.line");
-    if (li?.line?.t != null && isLive() && !e.target.closest(".card")) seek(li.line.t);
+    if (li?.line?.t == null || !isLive() || e.target.closest(".card")) return;
+    if (state.loop) setLoop(state.lineEls.indexOf(li));
+    seek(li.line.t);
     return;
   }
   const li = b.closest("li");
@@ -344,8 +355,15 @@ function tick() {
   document.body.classList.toggle("live", playing && state.follow);
   document.body.classList.toggle("can-seek", live && canControl());
   el.follow.hidden = !(playing && !state.follow);
+  el.loopBtn.classList.toggle("off", !live); // hidden but keeps its space, so the main buttons stay centered
   if (!live) return;
-  const i = activeIndex(state.song.lines, position() + 300); // light the line just as it starts
+  const now = position();
+  if (state.loop && playing && !state.loopSeeking && now >= state.loop.end - 150) {
+    state.loopSeeking = true;
+    seek(state.loop.start).finally(() => (state.loopSeeking = false));
+  }
+  // While looping, the loop's line stays lit; otherwise light the line just as it starts.
+  const i = state.loop ? state.loop.i : activeIndex(state.song.lines, now + 300);
   if (i === state.active) return;
   state.lineEls[state.active]?.classList.remove("on");
   state.active = i;
@@ -524,6 +542,7 @@ function show(song) {
   songs.set(song.key, song);
   state.song = song;
   state.follow = true;
+  state.loop = null;
   render();
   scrollTo({ top: 0 });
 }
@@ -531,12 +550,16 @@ function show(song) {
 // ---- Playback controls (Spotify Premium) ----
 const canControl = () => !!store.get("spotify:tokens")?.scope?.includes("user-modify-playback-state");
 
+// Logins from before the playback buttons existed lack the permission: ask to connect again.
+function needPermission() {
+  if (canControl()) return false;
+  setNotice({ from: "control", warn: true, text: "Connect Spotify once more to use the playback buttons.", actions: [["Connect", connectSpotify]] });
+  return true;
+}
+
 // Sends one player command. `then` updates the screen at once; a poll shortly after confirms what Spotify did.
 async function control(method, command, then) {
-  if (!canControl()) {
-    setNotice({ from: "control", warn: true, text: "Connect Spotify once more to use the playback buttons.", actions: [["Connect", connectSpotify]] });
-    return;
-  }
+  if (needPermission()) return;
   try {
     const res = await spotifyFetch("https://api.spotify.com/v1/me/player/" + command, { method });
     if (res.ok) {
@@ -556,11 +579,29 @@ async function control(method, command, then) {
 }
 
 function seek(ms) {
-  control("PUT", `seek?position_ms=${Math.max(0, Math.round(ms))}`, () => {
+  return control("PUT", `seek?position_ms=${Math.max(0, Math.round(ms))}`, () => {
     if (state.playback) Object.assign(state.playback, { progress: ms, at: performance.now() });
     state.follow = true;
   });
 }
+
+// Repeats lyric line i until stopped (null stops it): each time the line ends, tick() jumps back to its start.
+function setLoop(i) {
+  const lines = state.song.lines;
+  state.loop = i == null || i < 0 ? null : { i, start: lines[i].t, end: lineEnd(lines, i, state.song.duration) };
+  state.lineEls.forEach((li, k) => li.classList.toggle("looping", k === state.loop?.i));
+  renderPlayer();
+}
+
+el.loopBtn.addEventListener("click", () => {
+  if (state.loop) return setLoop(null);
+  if (needPermission()) return;
+  // The line being sung; during an instrumental break, the line just before it.
+  const lines = state.song.lines;
+  let i = Math.max(state.active, 0);
+  while (i > 0 && !lines[i].text) i--;
+  setLoop(lines[i].text ? i : lines.findIndex((l) => l.text));
+});
 
 function renderPlayer() {
   const show = !!(SPOTIFY_CLIENT_ID && store.get("spotify:tokens"));
@@ -569,6 +610,9 @@ function renderPlayer() {
   const playing = !!state.playback?.playing;
   el.playBtn.classList.toggle("playing", playing);
   el.playBtn.setAttribute("aria-label", playing ? "Pause" : "Play");
+  el.loopBtn.setAttribute("aria-pressed", String(!!state.loop));
+  el.loopBtn.title = state.loop ? "Stop repeating this line" : "Repeat this line";
+  el.loopBtn.setAttribute("aria-label", el.loopBtn.title);
 }
 
 el.playBtn.addEventListener("click", () => {
@@ -624,7 +668,7 @@ async function loadLyrics(song) {
 class GeminiError extends Error {
   constructor(status, reason, message, model) {
     super(message);
-    Object.assign(this, { status, reason, model, retryable: [429, 500, 503].includes(status) });
+    Object.assign(this, { status, reason, model, retryable: [0, 429, 500, 503].includes(status) }); // 0: the answer stopped early
   }
 }
 
@@ -648,7 +692,8 @@ async function askGemini(model, key, system, input, onObject) {
     stream.push(value);
   }
   const status = stream.end();
-  if (status && status !== "completed") throw new GeminiError(0, status, `The answer ended early (${status}).`, model);
+  // no status: the connection closed mid-answer (Gemini does this when overloaded)
+  if (status !== "completed") throw new GeminiError(0, status || "cut off", `The answer ended early (${status || "cut off"}).`, model);
 }
 
 function geminiMessage(e) {

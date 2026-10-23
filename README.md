@@ -29,7 +29,7 @@ Live at **https://eymeraj.github.io/arabi-whisper/**. It's a static page with no
 
 1. Every 5 seconds, while the page is visible, it asks Spotify what's playing ([currently-playing](https://developer.spotify.com/documentation/web-api/reference/get-the-users-currently-playing-track)). Playback buttons use Spotify's player commands, which need Premium and the "control playback" permission asked for at login.
 2. It looks the song up on [LRCLIB](https://lrclib.net), a free lyrics database. It prefers Arabic script, then timed lyrics, and matches the track's length to within 8 seconds. If nothing is found, you can paste the lyrics.
-3. It sends each distinct line once to Gemini (`gemini-3.8-flash`, then `gemini-3.5-flash-lite` if that one is out of free requests). The prompt and spelling rules are in `lib.js`. Results stream in line by line.
+3. It sends each distinct line once to Gemini (`gemini-3.8-flash`, then `gemini-3.5-flash-lite` if that one is out of free requests or busy). A new song is one request, and the free tier allows 20 requests a day per model, reset at midnight Pacific time. The prompt and spelling rules are in `lib.js`. Results stream in line by line.
 4. Converted songs are saved in the browser, so replaying a song costs nothing. Each device converts a song once.
 
 ## Run it locally

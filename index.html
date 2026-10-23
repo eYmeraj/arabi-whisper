@@ -41,6 +41,7 @@
 
 <nav id="player" class="player" aria-label="Spotify playback" hidden>
   <div class="player-in">
+    <span class="pbtn-space" aria-hidden="true"></span>
     <button id="prevBtn" class="pbtn" type="button" aria-label="Previous song" title="Previous song">
       <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M5.5 5h2.2v14H5.5zM19.5 5.7v12.6a.9.9 0 0 1-1.4.8l-9.4-6.3a.9.9 0 0 1 0-1.6l9.4-6.3a.9.9 0 0 1 1.4.8Z"/></svg>
     </button>
@@ -50,6 +51,9 @@
     </button>
     <button id="nextBtn" class="pbtn" type="button" aria-label="Next song" title="Next song">
       <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M16.3 5h2.2v14h-2.2zM4.5 5.7v12.6a.9.9 0 0 0 1.4.8l9.4-6.3a.9.9 0 0 0 0-1.6L5.9 4.9a.9.9 0 0 0-1.4.8Z"/></svg>
+    </button>
+    <button id="loopBtn" class="pbtn off" type="button" aria-pressed="false" aria-label="Repeat this line" title="Repeat this line">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M17 2.5 20 5.5l-3 3M4 11.5v-1a5 5 0 0 1 5-5h11M7 21.5l-3-3 3-3M20 12.5v1a5 5 0 0 1-5 5H4"/><text x="12" y="15.2" font-size="7.5" font-weight="700" text-anchor="middle" fill="currentColor" font-family="system-ui, sans-serif">1</text></svg>
     </button>
   </div>
 </nav>
@@ -130,6 +134,7 @@
         <tr><th scope="row">g</th><td>always hard, as in "go" (<span lang="ar">ج</span>)<span class="ex"><b>gameel</b> beautiful</span></td></tr>
         <tr><th scope="row">r</th><td>rolled, as in Spanish<span class="ex"><b>rooh</b> soul</span></td></tr>
         <tr><th scope="row">q</th><td>a deep "k", only in Classical songs<span class="ex"><b>qamar</b> moon</span></td></tr>
+        <tr><th scope="row">s-h</th><td>two sounds, not "sh"; the same for t&#8209;h, k&#8209;h, g&#8209;h and d&#8209;h<span class="ex"><b>as-ha</b> I wake up</span></td></tr>
         <tr><th scope="row">el-</th><td>"the"; it blends into some letters<span class="ex"><b>esh-shams</b> the sun</span></td></tr>
       </tbody>
     </table>
