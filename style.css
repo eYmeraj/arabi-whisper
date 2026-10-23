@@ -13,12 +13,14 @@
   --gold: #8a5f00;
   --live-bg: rgba(240, 180, 41, 0.32);
   --live-ink: #1d2433;
+  --ochre: #e3a72f; /* the sung line's color, solid: marks the repeated line on the song's bar */
   --shadow: 0 1px 2px rgba(29, 36, 51, 0.06), 0 10px 28px rgba(29, 36, 51, 0.1);
   --scrim: rgba(20, 21, 26, 0.45);
   --font-ui: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-ar: "Noto Naskh Arabic", "Geeza Pro", "Arabic Typesetting", "Times New Roman", serif;
   --font-display: "Reem Kufi", "Atkinson Hyperlegible Next", system-ui, sans-serif;
   --player-h: 76px;
+  --track-h: 0px; /* the song's progress row on top of the player, when shown */
   color-scheme: light;
 }
 
@@ -35,6 +37,7 @@
     --gold: #e8b95a;
     --live-bg: #3e3115;
     --live-ink: #f2c35e;
+    --ochre: #d9a33a;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.4);
     --scrim: rgba(5, 5, 8, 0.65);
     color-scheme: dark;
@@ -806,6 +809,64 @@ body.live .line:not(.on) .rom {
   border-top: 1px solid var(--line);
 }
 
+/* How far into the song: played part in the accent, a dot where it is now; a repeated line's stretch in ochre. */
+.track {
+  max-width: 44rem;
+  height: var(--track-h);
+  margin: 0 auto;
+  padding: 12px 16px 0;
+}
+
+.track-bar {
+  position: relative;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+}
+
+.track-fill,
+.track-loop,
+.track-dot {
+  position: absolute;
+  left: 0;
+}
+
+.track-fill {
+  top: 0;
+  bottom: 0;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.track-loop {
+  z-index: 1;
+  top: -3px;
+  bottom: -3px;
+  min-width: 6px;
+  border-radius: 5px;
+  background: var(--ochre);
+}
+
+.track-dot {
+  z-index: 2;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.track-times {
+  display: flex;
+  justify-content: space-between;
+  margin: 3px 0 0;
+  color: var(--ink-3);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
 .player-in {
   display: flex;
   align-items: center;
@@ -876,8 +937,12 @@ body.live .line:not(.on) .rom {
   display: block;
 }
 
+.has-track {
+  --track-h: 30px;
+}
+
 .has-player .page {
-  padding-bottom: calc(96px + var(--player-h) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(96px + var(--player-h) + var(--track-h) + env(safe-area-inset-bottom, 0px));
 }
 
 .follow {
@@ -898,7 +963,7 @@ body.live .line:not(.on) .rom {
 }
 
 .has-player .follow {
-  bottom: calc(var(--player-h) + 14px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--player-h) + var(--track-h) + 14px + env(safe-area-inset-bottom, 0px));
 }
 
 /* ---- Dialogs ---- */
