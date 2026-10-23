@@ -22,7 +22,7 @@ const SPOTIFY_SCOPE = "user-read-currently-playing user-modify-playback-state"; 
 // Tried in order: the second one takes over when the first is out of free requests or overloaded.
 const MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite"];
 // The Cloudflare Worker that keeps converted songs for all your devices (worker/, see README). "" turns syncing off.
-const SYNC_URL = "";
+const SYNC_URL = "https://arabi-whisper-sync.eycode.workers.dev";
 const POLL_MS = 5000;
 const REDIRECT_URI = location.origin + location.pathname.replace(/index\.html$/, "");
 const LRCLIB_HEADERS = { "Lrclib-Client": "Arabi Whisper (https://github.com/eYmeraj/arabi-whisper)" };
