@@ -80,11 +80,21 @@
       <div><button id="spotifyBtn" class="btn" type="button">Connect Spotify</button></div>
       <p id="spotifyState" class="state"></p>
     </section>
+    <section id="syncStep" class="step" hidden>
+      <h3><span class="step-n">3</span>Sync your devices</h3>
+      <p>Keeps converted songs in your own database, so a song converted on one device is ready on the others. Paste your sync token from the setup.</p>
+      <div class="field">
+        <label class="sr-only" for="syncToken">Sync token</label>
+        <input id="syncToken" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste your token">
+        <button id="saveSync" class="btn" type="button">Save</button>
+      </div>
+      <p id="syncState" class="state"></p>
+    </section>
     <section class="step">
       <h3>Lyrics for any song</h3>
       <p>Paste lyrics from anywhere to read them here.</p>
       <div><button id="settingsPaste" class="btn-ghost" type="button">Paste lyrics</button></div>
-      <p class="state">Your key and Spotify login are stored only in this browser. Lyrics are sent to Gemini to be converted.</p>
+      <p class="state">Your key and Spotify login are stored only in this browser. Lyrics are sent to Gemini to be converted, and converted songs to your sync database if you set one up.</p>
     </section>
   </div>
 </dialog>
