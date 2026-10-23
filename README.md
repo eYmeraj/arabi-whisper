@@ -5,7 +5,9 @@ Read Egyptian Arabic songs the way they're sung. While a song plays on Spotify (
 - the Arabic, as written
 - how it sounds, in plain English letters (spelling guide under **Sounds**)
 - what it means in English
-- every word: tap it to see its meaning and a grammar note
+- every word: tap it to see its meaning and a grammar note, and + to make it a flashcard
+
+The **Flashcards** tab is for practising those words any time, even with no song playing: the Arabic and its sound on the front; the meaning, the note and the lyric lines it came from on the back. Cards you know come back less often (after 1, 3, 7, 14, 30, then 90 days); "Again" brings a card back in the same session.
 
 With timed lyrics, the line being sung lights up and the page scrolls along. The bar at the bottom plays, pauses and skips songs on Spotify, and tapping a line plays the song from there.
 
@@ -25,7 +27,7 @@ Live at **https://eymeraj.github.io/arabi-whisper/**. It's a static page: your G
 4. Copy the app's **Client ID** into `SPOTIFY_CLIENT_ID` at the top of `app.js`. The Client ID is public by design, so it is fine in the code.
 5. If Spotify refuses access after you log in, add your Spotify account's email under the app's **User Management**.
 
-**3. Sync database (optional, free).** Without it, each device converts a song once. With it, a song converted on any of your devices is ready on all of them, and costs one Gemini request in total. It is a [Cloudflare Worker](https://developers.cloudflare.com/workers/) with a [D1](https://developers.cloudflare.com/d1/) database, one row per song, both on Cloudflare's free plan. From the `worker` folder:
+**3. Sync database (optional, free).** Without it, each device converts a song once. With it, a song converted on any of your devices is ready on all of them, and costs one Gemini request in total, and your flashcards and their progress follow you too. It is a [Cloudflare Worker](https://developers.cloudflare.com/workers/) with a [D1](https://developers.cloudflare.com/d1/) database (tables `songs` and `flashcards`, one row each), both on Cloudflare's free plan. From the `worker` folder:
 
 ```sh
 npx wrangler login
@@ -35,7 +37,7 @@ npx wrangler secret put SYNC_TOKEN     # asks for a token: use a long random one
 npx wrangler deploy                    # prints the Worker's address
 ```
 
-Put the Worker's address into `SYNC_URL` at the top of `app.js` and into `connect-src` in the page's security policy in `index.html`, then paste the token into Settings on each device. Only requests with the token can read or write songs.
+Put the Worker's address into `SYNC_URL` at the top of `app.js` and into `connect-src` in the page's security policy in `index.html`, then paste the token into Settings on each device. Only requests with the token can read or write. After changing the Worker or `schema.sql`, run the `execute` and `deploy` lines again; the schema only adds missing tables.
 
 ## How it works
 

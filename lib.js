@@ -235,3 +235,30 @@ export function quotaReset(now = new Date()) {
   midnight.setHours(24, 0, 0, 0);
   return new Date(now.getTime() - (now.getTime() % 1000) + (midnight - la));
 }
+
+// ---- Flashcards ----
+const DAY = 86400000;
+const WAITS = [1, 3, 7, 14, 30, 90]; // days until a card comes back, by box (Leitner boxes)
+
+/** A card's next box and due time after a review: "Got it" moves it up a box, "Again" back to the start, due now. */
+export function review(card, gotIt, now = Date.now()) {
+  if (!gotIt) return { box: 0, due: now };
+  const box = Math.min((card.box || 0) + 1, WAITS.length);
+  return { box, due: now + WAITS[box - 1] * DAY };
+}
+
+/**
+ * Merges this device's flashcards with the database's ({key: card}). The newer `updated` wins for each card; removed
+ * cards stay as {deleted: true} so another device can't bring them back. toPush: the cards the database lacks or has older.
+ */
+export function mergeCards(local, remote) {
+  const cards = { ...remote };
+  const toPush = [];
+  for (const [key, card] of Object.entries(local)) {
+    if (!remote[key] || card.updated > remote[key].updated) {
+      cards[key] = card;
+      toPush.push(card);
+    }
+  }
+  return { cards, toPush };
+}

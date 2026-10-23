@@ -14,6 +14,8 @@ import {
   lineWords,
   createGeminiStream,
   quotaReset,
+  review,
+  mergeCards,
 } from "./lib.js";
 
 // ---- Configuration ----
@@ -89,6 +91,8 @@ const state = {
   loopSeeking: false, // a jump back to the loop's start is on its way to Spotify
   notice: null, // a Spotify or login problem to show
   card: null, // the <li> whose word card is open
+  tab: "lyrics", // or "flashcards"
+  practice: null, // {queue: [card keys], flipped, all}: the flashcard session
 };
 const songs = new Map(); // songs opened in this session, so a conversion running in the background keeps its object
 
@@ -119,6 +123,10 @@ const el = {
   prevBtn: $("prevBtn"),
   nextBtn: $("nextBtn"),
   loopBtn: $("loopBtn"),
+  tabLyrics: $("tabLyrics"),
+  tabFlash: $("tabFlash"),
+  dueCount: $("dueCount"),
+  flashcards: $("flashcards"),
 };
 
 function h(tag, props = {}, ...children) {
@@ -318,6 +326,7 @@ function openCard(li, i) {
       h("span", { class: "c-rom", text: bare(w.rom) || w.rom }),
       w.en && h("span", { class: "c-en", text: w.en }),
       w.note && h("span", { class: "c-note", text: w.note }),
+      ar && flashButton(li, i),
     ),
   );
   state.card = li;
@@ -349,6 +358,217 @@ el.content.addEventListener("click", (e) => {
   stopFollow(); // studying a word: stay here instead of scrolling with the music
 });
 
+// ---- Flashcards: one per word, gathering the lines it was saved from; kept here and in the sync database ----
+const flashcards = () => store.get("flashcards") || {};
+const liveCards = () => Object.values(flashcards()).filter((c) => !c.deleted);
+const sameUse = (a, b) => a.song === b.song && a.line === b.line;
+const PLUS = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>';
+const CHECK = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+// The line of the open word card, as a flashcard keeps it.
+function useOf(li, i) {
+  const conv = state.song.conv[li.line.n];
+  const w = li.words[i];
+  return { song: state.song.key, line: conv.ar || li.line.text, lineRom: conv.rom, lineEn: conv.en, en: w.en, note: w.note };
+}
+
+const sendFlashcard = (card) =>
+  syncFetch("/flashcards/" + encodeURIComponent(card.key), { method: "PUT", body: JSON.stringify(card) }).catch(() => {}); // the next sync sends it again
+
+function saveFlashcard(card) {
+  store.set("flashcards", { ...flashcards(), [card.key]: card });
+  sendFlashcard(card);
+  renderTabs();
+}
+
+// "+" in a word card: adds the word, from this line, to the flashcards; "✓" takes this line off again.
+function flashButton(li, i) {
+  const w = li.words[i];
+  const key = bare(w.ar);
+  const use = useOf(li, i);
+  const card = flashcards()[key];
+  const uses = card && !card.deleted ? card.uses : [];
+  const saved = uses.some((u) => sameUse(u, use));
+  const label = saved ? "Remove from flashcards" : "Add to flashcards";
+  const toggle = () => {
+    const now = Date.now();
+    if (saved) {
+      const rest = uses.filter((u) => !sameUse(u, use));
+      saveFlashcard({ ...card, uses: rest, deleted: !rest.length, updated: now });
+    } else if (uses.length) saveFlashcard({ ...card, uses: [...uses, use], updated: now });
+    else saveFlashcard({ key, ar: key, rom: bare(w.rom) || w.rom, uses: [use], box: 0, due: now, updated: now });
+    openCard(li, i);
+    li.querySelector(".c-add")?.focus();
+  };
+  const b = h("button", { class: "c-add" + (saved ? " on" : ""), type: "button", "aria-label": label, title: label, onclick: toggle });
+  b.innerHTML = saved ? CHECK : PLUS;
+  return b;
+}
+
+// Fetches the database's flashcards and merges them with this device's. True when anything changed here.
+async function syncFlashcards() {
+  try {
+    const res = await syncFetch("/flashcards");
+    if (!res?.ok) return false;
+    const local = flashcards();
+    const { cards, toPush } = mergeCards(local, Object.fromEntries((await res.json()).map((c) => [c.key, c])));
+    store.set("flashcards", cards);
+    toPush.forEach(sendFlashcard);
+    renderTabs();
+    return JSON.stringify(cards) !== JSON.stringify(local);
+  } catch {
+    return false; // offline or the database is down: practise with this device's cards
+  }
+}
+
+function renderTabs() {
+  const now = Date.now();
+  const due = liveCards().filter((c) => c.due <= now).length;
+  el.dueCount.hidden = !due;
+  el.dueCount.textContent = due;
+  el.tabFlash.setAttribute("aria-label", due ? `Flashcards, ${due} due` : "Flashcards");
+  el.tabLyrics.setAttribute("aria-selected", String(state.tab === "lyrics"));
+  el.tabFlash.setAttribute("aria-selected", String(state.tab === "flashcards"));
+  el.content.hidden = state.tab !== "lyrics";
+  el.flashcards.hidden = state.tab !== "flashcards";
+}
+
+async function showTab(tab) {
+  if (tab === state.tab) return;
+  state.tab = tab;
+  store.set("tab", tab);
+  closeCard();
+  renderTabs();
+  if (tab === "lyrics") {
+    const li = state.lineEls[state.active];
+    if (li && state.follow && isLive()) li.scrollIntoView({ block: "center" });
+    else scrollTo({ top: 0 });
+    return;
+  }
+  state.practice = null;
+  renderFlashcards();
+  scrollTo({ top: 0 });
+  // cards added or practised on another device: start over with them, unless practice has begun
+  if ((await syncFlashcards()) && state.tab === "flashcards" && !state.practice?.started) {
+    state.practice = null;
+    renderFlashcards();
+  }
+}
+
+// Due cards, the longest overdue first; or every card, shuffled.
+function startPractice(all) {
+  const now = Date.now();
+  const cards = liveCards().filter((c) => all || c.due <= now);
+  if (all) {
+    for (let i = cards.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [cards[i], cards[j]] = [cards[j], cards[i]];
+    }
+  } else cards.sort((a, b) => a.due - b.due);
+  state.practice = { queue: cards.map((c) => c.key), flipped: false, all, started: false };
+}
+
+function renderFlashcards() {
+  if (state.tab !== "flashcards") return;
+  if (!state.practice) startPractice(false);
+  const p = state.practice;
+  const all = flashcards();
+  p.queue = p.queue.filter((k) => all[k] && !all[k].deleted);
+  const card = all[p.queue[0]];
+  el.flashcards.replaceChildren(liveCards().length ? (card ? practiceView(card) : doneView()) : noCardsView());
+  if (p.flipped) el.flashcards.querySelector(".fc-actions .btn")?.focus({ preventScroll: true });
+}
+
+function noCardsView() {
+  return h(
+    "section",
+    { class: "empty" },
+    h("h1", { class: "display", text: "No flashcards yet" }),
+    h("p", { text: "Tap a word in the lyrics, then + to add it here. Practise them any time, even with no song playing." }),
+    h("div", { class: "actions" }, h("button", { class: "btn-ghost", type: "button", onclick: () => showTab("lyrics"), text: "Go to the lyrics" })),
+  );
+}
+
+function doneView() {
+  const cards = liveCards();
+  const next = Math.min(...cards.map((c) => c.due));
+  const days = Math.max(1, Math.round((new Date(next).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86400000));
+  const when = new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(days, "day");
+  return h(
+    "section",
+    { class: "empty" },
+    h("h1", { class: "display", text: state.practice.all ? "That's every card" : "All done for today" }),
+    h("p", { text: `Next card due ${when}. You have ${cards.length} ${cards.length === 1 ? "card" : "cards"}.` }),
+    h(
+      "div",
+      { class: "actions" },
+      h("button", { class: "btn-ghost", type: "button", onclick: () => (startPractice(true), renderFlashcards()), text: "Practise all anyway" }),
+    ),
+  );
+}
+
+// The card's word, marked in a lyric line.
+const marked = (line, key) => line.split(/(\s+)/).map((part) => (bare(part) === key ? h("mark", { text: part }) : part));
+
+function practiceView(card) {
+  const p = state.practice;
+  const flip = () => {
+    p.flipped = p.started = true;
+    renderFlashcards();
+  };
+  const unique = (field) => [...new Set(card.uses.map((u) => u[field]).filter(Boolean))];
+  const face = p.flipped
+    ? [
+        h("p", { class: "fc-en", text: unique("en").join(" · ") || "No meaning given" }),
+        ...unique("note").map((note) => h("p", { class: "fc-note", text: note })),
+        h(
+          "ul",
+          { class: "fc-uses" },
+          card.uses.map((u) =>
+            h(
+              "li",
+              {},
+              h("p", { class: "fc-line", lang: "ar", dir: "rtl" }, marked(u.line, card.key)),
+              h("p", { class: "fc-line-rom", text: u.lineRom }),
+              u.lineEn && h("p", { class: "fc-line-en", text: u.lineEn }),
+            ),
+          ),
+        ),
+      ]
+    : [h("p", { class: "fc-ar", lang: "ar", dir: "rtl", text: card.ar }), h("p", { class: "fc-rom", text: card.rom })];
+  const rate = (gotIt) => {
+    const key = p.queue.shift();
+    saveFlashcard({ ...card, ...review(card, gotIt), updated: Date.now() });
+    if (!gotIt) p.queue.push(key); // comes back later in this session
+    p.flipped = false;
+    renderFlashcards();
+  };
+  const remove = () => {
+    p.queue.shift();
+    saveFlashcard({ ...card, deleted: true, updated: Date.now() });
+    p.flipped = false;
+    renderFlashcards();
+  };
+  return h(
+    "section",
+    { class: "practice" },
+    h("p", { class: "eyebrow", text: `${p.queue.length} to go${p.all ? " · all cards" : ""}` }),
+    h("div", { class: "fc" + (p.flipped ? " back" : ""), onclick: p.flipped ? null : flip }, face),
+    p.flipped
+      ? h(
+          "div",
+          { class: "fc-actions" },
+          h("button", { class: "btn-ghost", type: "button", onclick: () => rate(false), text: "Again" }),
+          h("button", { class: "btn", type: "button", onclick: () => rate(true), text: "Got it" }),
+          h("button", { class: "fc-remove", type: "button", onclick: remove, text: "Remove card" }),
+        )
+      : h("div", { class: "fc-actions" }, h("button", { class: "btn-ghost", type: "button", onclick: flip, text: "Show answer" })),
+  );
+}
+
+el.tabLyrics.addEventListener("click", () => showTab("lyrics"));
+el.tabFlash.addEventListener("click", () => showTab("flashcards"));
+
 // ---- Following the music ----
 function isLive() {
   const { song, playback } = state;
@@ -366,7 +586,7 @@ function tick() {
   const playing = live && state.playback.playing;
   document.body.classList.toggle("live", playing && state.follow);
   document.body.classList.toggle("can-seek", live && canControl());
-  el.follow.hidden = !(playing && !state.follow);
+  el.follow.hidden = !(playing && !state.follow && state.tab === "lyrics");
   el.loopBtn.classList.toggle("off", !live); // hidden but keeps its space, so the main buttons stay centered
   if (!live) return;
   const now = position();
@@ -381,7 +601,7 @@ function tick() {
   state.active = i;
   const li = state.lineEls[i];
   li?.classList.add("on");
-  if (li && playing && state.follow) li.scrollIntoView({ block: "center", behavior: motion() });
+  if (li && playing && state.follow && state.tab === "lyrics") li.scrollIntoView({ block: "center", behavior: motion() });
 }
 
 function stopFollow() {
@@ -928,6 +1148,9 @@ if (last) {
   state.song = last;
 }
 render();
+renderTabs();
+if (store.get("tab") === "flashcards") showTab("flashcards");
+else syncFlashcards();
 await finishSpotifyLogin();
 render();
 if (state.song) convert(state.song); // finish lines left over from last time
