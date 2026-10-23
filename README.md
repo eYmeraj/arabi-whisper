@@ -9,7 +9,7 @@ Read Egyptian Arabic songs the way they're sung. While a song plays on Spotify (
 
 The **Flashcards** tab is for practising those words any time, even with no song playing: the Arabic and its sound on the front; the meaning, the note and the lyric lines it came from on the back. Cards you know come back less often (after 1, 3, 7, 14, 30, then 90 days); "Again" brings a card back in the same session.
 
-With timed lyrics, the line being sung lights up and the page scrolls along. The bar at the bottom plays, pauses and skips songs on Spotify, and tapping a line plays the song from there.
+With timed lyrics, the line being sung lights up and the page scrolls along. The bar at the bottom shows how far into the song you are (1:27 of 2:31), plays, pauses and skips songs on Spotify, and tapping a line plays the song from there.
 
 Live at **https://eymeraj.github.io/arabi-whisper/**. It's a static page: your Gemini key and Spotify login stay in your browser. The only server is an optional sync database of your own.
 

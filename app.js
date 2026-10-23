@@ -9,6 +9,7 @@ import {
   cleanTitle,
   activeIndex,
   lineEnd,
+  clock,
   buildPrompt,
   readResult,
   lineWords,
@@ -130,6 +131,12 @@ const el = {
   prevBtn: $("prevBtn"),
   nextBtn: $("nextBtn"),
   loopBtn: $("loopBtn"),
+  track: $("track"),
+  trackFill: $("trackFill"),
+  trackDot: $("trackDot"),
+  trackLoop: $("trackLoop"),
+  trackAt: $("trackAt"),
+  trackLen: $("trackLen"),
   tabLyrics: $("tabLyrics"),
   tabFlash: $("tabFlash"),
   dueCount: $("dueCount"),
@@ -584,7 +591,30 @@ function position() {
   return progress + (playing ? performance.now() - at : 0);
 }
 
+// How far into the song: a bar and "1:25 … 2:31", while the song on screen is the one playing on Spotify.
+function renderTrack() {
+  const { song, playback } = state;
+  const show = !!(playback && song?.key === playback.key && song.duration);
+  if (el.track.hidden === show) {
+    el.track.hidden = !show;
+    document.body.classList.toggle("has-track", show);
+  }
+  if (!show) return;
+  const at = Math.min(position(), song.duration);
+  const pct = (100 * at) / song.duration;
+  el.trackFill.style.width = el.trackDot.style.left = pct + "%";
+  el.trackAt.textContent = clock(at);
+  el.trackLen.textContent = clock(song.duration);
+  const loop = state.loop; // the repeated line's stretch of the song
+  el.trackLoop.hidden = !loop;
+  if (loop) {
+    el.trackLoop.style.left = (100 * loop.start) / song.duration + "%";
+    el.trackLoop.style.width = (100 * (loop.end - loop.start)) / song.duration + "%";
+  }
+}
+
 function tick() {
+  renderTrack();
   const live = isLive();
   const playing = live && state.playback.playing;
   document.body.classList.toggle("live", playing && state.follow);
