@@ -191,7 +191,7 @@ export function createGeminiStream(onObject) {
           .filter((l) => l.startsWith("data:"))
           .map((l) => l.slice(5).trim())
           .join("\n");
-        if (data) onEvent(JSON.parse(data));
+        if (data && data !== "[DONE]") onEvent(JSON.parse(data)); // [DONE] closes the stream, after interaction.completed
       }
     },
     end() {
