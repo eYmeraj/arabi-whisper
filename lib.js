@@ -224,3 +224,14 @@ export function createGeminiStream(onObject) {
     },
   };
 }
+
+/**
+ * When Gemini's daily free requests come back: the next midnight in California.
+ * shortcut: an hour off if the device's own clock changes for summer time that night; fine for a hint.
+ */
+export function quotaReset(now = new Date()) {
+  const la = new Date(now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
+  const midnight = new Date(la);
+  midnight.setHours(24, 0, 0, 0);
+  return new Date(now.getTime() - (now.getTime() % 1000) + (midnight - la));
+}

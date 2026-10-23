@@ -10,6 +10,7 @@ import {
   buildPrompt,
   readResult,
   lineWords,
+  quotaReset,
   objectSplitter,
   createGeminiStream,
   StreamError,
@@ -149,4 +150,10 @@ test("createGeminiStream reads model output and skips thoughts, whatever the chu
 test("createGeminiStream raises stream errors", () => {
   const stream = createGeminiStream(() => {});
   assert.throws(() => stream.push('data: {"event_type":"error","error":{"code":"x","message":"boom"}}\n\n'), StreamError);
+});
+
+test("quotaReset is the next midnight in California", () => {
+  assert.equal(quotaReset(new Date("2026-10-23T11:14:09.500Z")).toISOString(), "2026-10-24T07:00:00.000Z"); // summer time
+  assert.equal(quotaReset(new Date("2026-12-01T20:00:00Z")).toISOString(), "2026-12-02T08:00:00.000Z");
+  assert.equal(quotaReset(new Date("2026-12-02T07:59:59Z")).toISOString(), "2026-12-02T08:00:00.000Z");
 });

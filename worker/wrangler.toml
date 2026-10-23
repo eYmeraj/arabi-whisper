@@ -1,0 +1,8 @@
+name = "arabi-whisper-sync"
+main = "index.js"
+compatibility_date = "2026-10-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "arabi-whisper"
+database_id = "" # from `npx wrangler d1 create arabi-whisper` (see README)
