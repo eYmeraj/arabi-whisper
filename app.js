@@ -68,7 +68,7 @@ const store = {
 };
 
 // Songs are kept as "song:<key>"; "songs" lists their keys, least recently opened first.
-const songData = ({ converting, error, ...data }) => data;
+const songData = ({ converting, waiting, error, ...data }) => data;
 
 function saveSong(song) {
   const data = songData(song);
@@ -165,6 +165,8 @@ function renderNotice() {
   el.notice.hidden = !n;
   if (!n) return;
   el.notice.className = "notice" + (n.warn ? " warn" : "");
+  if (n.wait) el.notice.dataset.wait = n.wait; // the dot: what we're waiting for
+  else delete el.notice.dataset.wait;
   el.notice.replaceChildren(
     h("span", { class: "notice-text", text: n.text }),
     ...(n.actions || []).map(([label, fn]) => h("button", { class: "btn-ghost sm", type: "button", onclick: fn, text: label })),
@@ -177,7 +179,8 @@ function songNotice(song) {
   const total = song.unique?.length || 0;
   const done = Object.keys(song.conv || {}).length;
   if (!total || done === total) return null;
-  if (song.converting) return { text: `Writing the pronunciation… ${done} of ${total} lines` };
+  if (song.waiting === "db") return { wait: "db", text: "Checking your saved songs…" };
+  if (song.converting) return { wait: song.waiting, text: `Writing the pronunciation… ${done} of ${total} ${total === 1 ? "line" : "lines"}` };
   if (song.error) return { warn: true, text: song.error, actions: [["Try again", () => convert(song)]] };
   if (!store.get("gemini:key")) return { warn: true, text: "Add your Gemini key to see the pronunciation.", actions: [["Open settings", openSettings]] };
   return null;
@@ -759,9 +762,12 @@ async function convert(song) {
     return;
   }
   song.converting = true;
+  song.waiting = "db";
   song.error = null;
   showProgress(song);
-  if ((await pull(song)) && state.song === song) render();
+  const pulled = await pull(song);
+  song.waiting = null;
+  if (pulled && state.song === song) render();
   const key = store.get("gemini:key");
   const todo = missing();
   if (!key || !todo.length) {
@@ -781,6 +787,8 @@ async function convert(song) {
     showProgress(song);
   };
   const { system, input } = buildPrompt(song, todo);
+  song.waiting = "gemini";
+  showProgress(song);
   try {
     for (const [i, model] of MODELS.entries()) {
       try {
@@ -796,6 +804,7 @@ async function convert(song) {
     song.error = geminiMessage(e);
   } finally {
     song.converting = false;
+    song.waiting = null;
     saveSong(song);
     showProgress(song);
     if (wanted.size < todo.length) push(song);
