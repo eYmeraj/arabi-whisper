@@ -75,6 +75,14 @@ export function activeIndex(lines, ms) {
   return i;
 }
 
+/** A song position in ms as a clock: 85000 -> "1:25", 3725000 -> "1:02:05". */
+export function clock(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const mm = Math.floor(s / 60) % 60;
+  const ss = String(s % 60).padStart(2, "0");
+  return s >= 3600 ? `${Math.floor(s / 3600)}:${String(mm).padStart(2, "0")}:${ss}` : `${mm}:${ss}`;
+}
+
 /** When timed line i ends: where the next timed line starts. The last line gets at most 8 s, and never runs past the song. */
 export function lineEnd(lines, i, songMs = Infinity) {
   const start = lines[i].t;

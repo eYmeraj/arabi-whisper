@@ -45,6 +45,10 @@
 <button id="followBtn" class="follow" type="button" hidden>Follow along</button>
 
 <nav id="player" class="player" aria-label="Spotify playback" hidden>
+  <div id="track" class="track" hidden>
+    <div class="track-bar" aria-hidden="true"><span id="trackLoop" class="track-loop" hidden></span><span id="trackFill" class="track-fill"></span><span id="trackDot" class="track-dot"></span></div>
+    <p class="track-times"><span id="trackAt">0:00</span><span class="sr-only"> of </span><span id="trackLen">0:00</span></p>
+  </div>
   <div class="player-in">
     <span class="pbtn-space" aria-hidden="true"></span>
     <button id="prevBtn" class="pbtn" type="button" aria-label="Previous song" title="Previous song">
