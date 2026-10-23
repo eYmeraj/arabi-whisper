@@ -11,6 +11,7 @@ import {
   readResult,
   lineWords,
   quotaReset,
+  clock,
   review,
   mergeCards,
   toggleUse,
@@ -198,4 +199,12 @@ test("toggleUse adds a word's lyric line to its flashcard, takes it off again, a
   assert.deepEqual([gone.uses, gone.deleted, gone.updated], [[], true, 40]);
   const fresh = toggleUse(gone, word, line1, 50); // back after removal: a new card, due now
   assert.deepEqual([fresh.uses, fresh.box, fresh.due, fresh.deleted], [[line1], 0, 50, undefined]);
+});
+
+test("clock shows a song position as m:ss, or h:mm:ss for long songs", () => {
+  assert.equal(clock(0), "0:00");
+  assert.equal(clock(85999), "1:25"); // whole seconds, never rounded up past the song
+  assert.equal(clock(151000), "2:31");
+  assert.equal(clock(3725000), "1:02:05"); // an Umm Kulthum song
+  assert.equal(clock(-500), "0:00");
 });
