@@ -1,0 +1,9 @@
+name = "arabi-whisper-sync"
+main = "index.js"
+compatibility_date = "2026-10-01"
+preview_urls = false
+
+[[d1_databases]]
+binding = "DB"
+database_name = "arabi-whisper"
+database_id = "24e803ff-f780-465e-ac8c-32d891e1c764"

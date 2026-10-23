@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.scdn.co https://*.spotifycdn.com; connect-src https://accounts.spotify.com https://api.spotify.com https://lrclib.net https://generativelanguage.googleapis.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.scdn.co https://*.spotifycdn.com; connect-src https://arabi-whisper-sync.eycode.workers.dev https://accounts.spotify.com https://api.spotify.com https://lrclib.net https://generativelanguage.googleapis.com; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <title>Arabi Whisper</title>
 <meta name="description" content="Egyptian Arabic songs from Spotify with the pronunciation in English letters, a translation and word-by-word meanings.">
@@ -32,10 +32,15 @@
     </button>
   </div>
   <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+  <nav class="tabs" role="tablist" aria-label="View">
+    <button id="tabLyrics" class="tab" role="tab" type="button" aria-controls="content" aria-selected="true">Lyrics</button>
+    <button id="tabFlash" class="tab" role="tab" type="button" aria-controls="flashcards" aria-selected="false">Flashcards<span id="dueCount" class="due" hidden></span></button>
+  </nav>
   <div id="progress" class="progress" hidden><span></span></div>
 </header>
 
-<main id="content" class="page"></main>
+<main id="content" class="page" role="tabpanel" aria-labelledby="tabLyrics"></main>
+<main id="flashcards" class="page" role="tabpanel" aria-labelledby="tabFlash" hidden></main>
 
 <button id="followBtn" class="follow" type="button" hidden>Follow along</button>
 
@@ -80,11 +85,21 @@
       <div><button id="spotifyBtn" class="btn" type="button">Connect Spotify</button></div>
       <p id="spotifyState" class="state"></p>
     </section>
+    <section id="syncStep" class="step" hidden>
+      <h3><span class="step-n">3</span>Sync your devices</h3>
+      <p>Keeps converted songs in your own database, so a song converted on one device is ready on the others. Paste your sync token from the setup.</p>
+      <div class="field">
+        <label class="sr-only" for="syncToken">Sync token</label>
+        <input id="syncToken" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste your token">
+        <button id="saveSync" class="btn" type="button">Save</button>
+      </div>
+      <p id="syncState" class="state"></p>
+    </section>
     <section class="step">
       <h3>Lyrics for any song</h3>
       <p>Paste lyrics from anywhere to read them here.</p>
       <div><button id="settingsPaste" class="btn-ghost" type="button">Paste lyrics</button></div>
-      <p class="state">Your key and Spotify login are stored only in this browser. Lyrics are sent to Gemini to be converted.</p>
+      <p class="state">Your key and Spotify login are stored only in this browser. Lyrics are sent to Gemini to be converted, and converted songs to your sync database if you set one up.</p>
     </section>
   </div>
 </dialog>
