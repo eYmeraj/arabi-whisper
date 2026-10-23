@@ -11,6 +11,8 @@ import {
   readResult,
   lineWords,
   quotaReset,
+  review,
+  mergeCards,
   objectSplitter,
   createGeminiStream,
   StreamError,
@@ -156,4 +158,27 @@ test("quotaReset is the next midnight in California", () => {
   assert.equal(quotaReset(new Date("2026-10-23T11:14:09.500Z")).toISOString(), "2026-10-24T07:00:00.000Z"); // summer time
   assert.equal(quotaReset(new Date("2026-12-01T20:00:00Z")).toISOString(), "2026-12-02T08:00:00.000Z");
   assert.equal(quotaReset(new Date("2026-12-02T07:59:59Z")).toISOString(), "2026-12-02T08:00:00.000Z");
+});
+
+test("review moves a card up a box on Got it, and back to the start on Again", () => {
+  const now = Date.UTC(2026, 9, 23);
+  const day = 86400000;
+  assert.deepEqual(review({ box: 0 }, true, now), { box: 1, due: now + day });
+  assert.deepEqual(review({ box: 2 }, true, now), { box: 3, due: now + 7 * day });
+  assert.deepEqual(review({ box: 6 }, true, now), { box: 6, due: now + 90 * day }); // the last box stays
+  assert.deepEqual(review({ box: 4 }, false, now), { box: 0, due: now });
+});
+
+test("mergeCards keeps the newer copy of each card, and removed cards stay removed", () => {
+  const local = {
+    a: { key: "a", updated: 5 }, // newer here
+    b: { key: "b", updated: 1 }, // older here
+    c: { key: "c", updated: 9, deleted: true }, // removed here
+    d: { key: "d", updated: 2 }, // only here
+  };
+  const remote = { a: { key: "a", updated: 3 }, b: { key: "b", updated: 4 }, c: { key: "c", updated: 8 }, e: { key: "e", updated: 1 } };
+  const { cards, toPush } = mergeCards(local, remote);
+  assert.deepEqual(cards, { a: local.a, b: remote.b, c: local.c, d: local.d, e: remote.e });
+  assert.deepEqual(toPush.map((c) => c.key), ["a", "c", "d"]);
+  assert.deepEqual(mergeCards({}, {}), { cards: {}, toPush: [] });
 });

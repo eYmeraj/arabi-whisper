@@ -1,7 +1,8 @@
-// Arabi Whisper sync: keeps converted songs in a D1 database, one row per song, so all of the owner's devices share
-// them. Only requests carrying the owner's token (the SYNC_TOKEN secret) get in.
+// Arabi Whisper sync: keeps converted songs and flashcards in a D1 database, one row each, so all of the owner's
+// devices share them. Only requests carrying the owner's token (the SYNC_TOKEN secret) get in.
 const ORIGINS = ["https://eymeraj.github.io", "http://127.0.0.1:8000"];
 const MAX_BYTES = 1_000_000; // a long song with word cards is well under 100 KB
+const TABLES = { songs: "songs", flashcards: "flashcards" }; // table names come from here, never from the URL
 
 const digest = async (s) => new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s || "")));
 // compares hashes, so the time taken says nothing about the token
@@ -23,12 +24,17 @@ export default {
 
     const path = new URL(req.url).pathname;
     if (path === "/") return reply(204); // lets the app check the token
-    const m = path.match(/^\/songs\/([^/]{1,300})$/);
+    if (path === "/flashcards" && req.method === "GET") {
+      const { results } = await env.DB.prepare("SELECT data FROM flashcards").all();
+      return reply(200, "[" + results.map((r) => r.data).join(",") + "]");
+    }
+    const m = path.match(/^\/(songs|flashcards)\/([^/]{1,300})$/);
     if (!m) return reply(404);
-    const key = decodeURIComponent(m[1]);
+    const table = TABLES[m[1]];
+    const key = decodeURIComponent(m[2]);
 
     if (req.method === "GET") {
-      const row = await env.DB.prepare("SELECT data FROM songs WHERE key = ?").bind(key).first();
+      const row = await env.DB.prepare(`SELECT data FROM ${table} WHERE key = ?`).bind(key).first();
       return row ? reply(200, row.data) : reply(404);
     }
     if (req.method === "PUT") {
@@ -39,7 +45,7 @@ export default {
       } catch {
         return reply(400);
       }
-      await env.DB.prepare("INSERT INTO songs (key, data, updated) VALUES (?1, ?2, ?3) ON CONFLICT (key) DO UPDATE SET data = ?2, updated = ?3")
+      await env.DB.prepare(`INSERT INTO ${table} (key, data, updated) VALUES (?1, ?2, ?3) ON CONFLICT (key) DO UPDATE SET data = ?2, updated = ?3`)
         .bind(key, data, Date.now())
         .run();
       return reply(204);

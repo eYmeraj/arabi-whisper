@@ -32,10 +32,15 @@
     </button>
   </div>
   <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+  <nav class="tabs" role="tablist" aria-label="View">
+    <button id="tabLyrics" class="tab" role="tab" type="button" aria-controls="content" aria-selected="true">Lyrics</button>
+    <button id="tabFlash" class="tab" role="tab" type="button" aria-controls="flashcards" aria-selected="false">Flashcards<span id="dueCount" class="due" hidden></span></button>
+  </nav>
   <div id="progress" class="progress" hidden><span></span></div>
 </header>
 
-<main id="content" class="page"></main>
+<main id="content" class="page" role="tabpanel" aria-labelledby="tabLyrics"></main>
+<main id="flashcards" class="page" role="tabpanel" aria-labelledby="tabFlash" hidden></main>
 
 <button id="followBtn" class="follow" type="button" hidden>Follow along</button>
 
