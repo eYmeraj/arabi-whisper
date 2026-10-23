@@ -580,8 +580,14 @@ body.live .line:not(.on) .rom {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 28px;
+  gap: 22px;
   height: var(--player-h);
+}
+
+/* Mirrors the repeat button on the right, so previous / play / next stay centered. */
+.pbtn-space {
+  flex: none;
+  width: 48px;
 }
 
 .pbtn {
@@ -614,6 +620,21 @@ body.live .line:not(.on) .rom {
   .pbtn.main:hover {
     background: var(--ink-2);
   }
+}
+
+.pbtn.off {
+  visibility: hidden;
+}
+
+.pbtn[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+}
+
+/* The line being repeated. */
+.line.looping {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .pbtn .i-pause,
