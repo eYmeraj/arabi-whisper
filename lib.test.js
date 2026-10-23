@@ -95,14 +95,16 @@ test("objectSplitter finds objects across chunks, braces in strings, fences and 
   assert.deepEqual(got, [{ n: 1, rom: 'a {b} "c"' }, { n: 2, rom: "x" }]);
 });
 
-// Event shapes from https://ai.google.dev/gemini-api/docs/thinking (streaming example).
+// Event shapes from https://ai.google.dev/gemini-api/docs/thinking (streaming example); keep-alive and [DONE] as the live API sends them.
 const sse = [
+  ": keep-alive",
   'event: interaction.created\ndata: {"interaction":{"id":"v1_x","status":"in_progress"},"event_type":"interaction.created"}',
   'event: step.start\ndata: {"index":0,"step":{"signature":"","summary":[{"text":"{\\"n\\":9}","type":"text"}],"type":"thought"},"event_type":"step.start"}',
   'event: step.delta\ndata: {"index":0,"delta":{"signature":"Ep","type":"thought_signature"},"event_type":"step.delta"}',
   'event: step.start\ndata: {"index":1,"step":{"content":[{"text":"{\\"n\\":1,\\"rom\\":\\"ana\\"}\\n{\\"n\\":2,","type":"text"}],"type":"model_output"},"event_type":"step.start"}',
   'event: step.delta\ndata: {"index":1,"delta":{"text":"\\"rom\\":\\"enta\\"}","type":"text"},"event_type":"step.delta"}',
   'event: interaction.completed\ndata: {"interaction":{"id":"v1_x","status":"completed"},"event_type":"interaction.completed"}',
+  "event: done\ndata: [DONE]",
 ].join("\r\n\r\n");
 
 test("createGeminiStream reads model output and skips thoughts, whatever the chunk edges", () => {

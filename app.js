@@ -664,7 +664,7 @@ async function loadLyrics(song) {
 class GeminiError extends Error {
   constructor(status, reason, message, model) {
     super(message);
-    Object.assign(this, { status, reason, model, retryable: [429, 500, 503].includes(status) });
+    Object.assign(this, { status, reason, model, retryable: [0, 429, 500, 503].includes(status) }); // 0: the answer stopped early
   }
 }
 
@@ -688,7 +688,8 @@ async function askGemini(model, key, system, input, onObject) {
     stream.push(value);
   }
   const status = stream.end();
-  if (status && status !== "completed") throw new GeminiError(0, status, `The answer ended early (${status}).`, model);
+  // no status: the connection closed mid-answer (Gemini does this when overloaded)
+  if (status !== "completed") throw new GeminiError(0, status || "cut off", `The answer ended early (${status || "cut off"}).`, model);
 }
 
 function geminiMessage(e) {
