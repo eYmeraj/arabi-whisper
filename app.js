@@ -754,6 +754,7 @@ function onPlayback(data) {
   // Switch only when Spotify moves to another track, so pasted lyrics stay open while music plays.
   if (key === state.trackKey) return renderHeader();
   state.trackKey = key;
+  if (state.notice?.from === "control") setNotice(null); // about the last song: make room for this one's status
   openTrack(item);
 }
 
@@ -791,10 +792,18 @@ function show(song) {
 // ---- Playback controls (Spotify Premium) ----
 const canControl = () => !!store.get("spotify:tokens")?.scope?.includes("user-modify-playback-state");
 
+// A playback message answers one tap, so it clears itself; otherwise it would hide the song's status for good.
+let controlTimer;
+function controlNotice(text, actions) {
+  setNotice({ from: "control", warn: true, text, actions });
+  clearTimeout(controlTimer);
+  controlTimer = setTimeout(() => state.notice?.from === "control" && setNotice(null), 8000);
+}
+
 // Logins from before the playback buttons existed lack the permission: ask to connect again.
 function needPermission() {
   if (canControl()) return false;
-  setNotice({ from: "control", warn: true, text: "Connect Spotify once more to use the playback buttons.", actions: [["Connect", connectSpotify]] });
+  controlNotice("Connect Spotify once more to use the playback buttons.", [["Connect", connectSpotify]]);
   return true;
 }
 
@@ -808,11 +817,11 @@ async function control(method, command, then) {
       then?.();
       setTimeout(poll, 700);
     } else if (res.status === 404) {
-      setNotice({ from: "control", warn: true, text: "Spotify isn't playing on any device. Start a song in the Spotify app first." });
+      controlNotice("Spotify isn't playing on any device. Start a song in the Spotify app first.");
     } else if (res.status !== 429) {
       const reason = (await res.json().catch(() => null))?.error?.reason;
       const text = reason === "PREMIUM_REQUIRED" ? "Spotify only allows playback control with Premium." : "Spotify didn't take that command. Try it in the Spotify app.";
-      setNotice({ from: "control", warn: true, text });
+      controlNotice(text);
     }
   } catch {
     // offline: the next poll shows what is really playing
