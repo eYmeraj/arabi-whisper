@@ -23,7 +23,8 @@ import {
 
 // ---- Configuration ----
 const SPOTIFY_CLIENT_ID = "545a023e91a7461cb5409aed0569ca8f"; // public by design: identifies the Spotify developer app (see README)
-const SPOTIFY_SCOPE = "user-read-currently-playing user-modify-playback-state"; // see what's playing; play, pause, skip, seek
+// see what's playing; play, pause, skip, seek; list devices, to wake an idle one
+const SPOTIFY_SCOPE = "user-read-currently-playing user-modify-playback-state user-read-playback-state";
 // Tried in order: the second one takes over when the first is out of free requests or overloaded.
 const MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite"];
 // The Cloudflare Worker that keeps converted songs for all your devices (worker/, see README). "" turns syncing off.
@@ -834,7 +835,7 @@ let controlTimer;
 function controlNotice(text, actions) {
   setNotice({ from: "control", warn: true, text, actions });
   clearTimeout(controlTimer);
-  controlTimer = setTimeout(() => state.notice?.from === "control" && setNotice(null), 8000);
+  controlTimer = setTimeout(() => state.notice?.from === "control" && setNotice(null), actions ? 15000 : 8000); // time to tap its button
 }
 
 // Logins from before the playback buttons existed lack the permission: ask to connect again.
@@ -844,17 +845,38 @@ function needPermission() {
   return true;
 }
 
+const canWake = () => !!store.get("spotify:tokens")?.scope?.includes("user-read-playback-state");
+
+// Spotify goes idle when its app has been paused or in the background for a while: then no device is "active" and
+// a plain command gets 404, but a device Spotify still lists can be named and woken. Its id, or null.
+async function idleDevice() {
+  if (!canWake()) return null;
+  const res = await spotifyFetch("https://api.spotify.com/v1/me/player/devices");
+  const usable = res.ok ? ((await res.json()).devices || []).filter((d) => !d.is_restricted) : [];
+  return (usable.find((d) => d.is_active) || usable[0])?.id || null;
+}
+
+// Opens the song in the Spotify app (iOS asks first), which makes that phone a device again.
+const openSpotify = () => location.assign(state.playback?.key ? "spotify:track:" + state.playback.key : "spotify:");
+
 // Sends one player command. `then` updates the screen at once; a poll shortly after confirms what Spotify did.
 async function control(method, command, then) {
   if (needPermission()) return;
+  const url = "https://api.spotify.com/v1/me/player/" + command;
   try {
-    const res = await spotifyFetch("https://api.spotify.com/v1/me/player/" + command, { method });
+    let res = await spotifyFetch(url, { method });
+    if (res.status === 404) {
+      const device = await idleDevice();
+      if (device) res = await spotifyFetch(url + (url.includes("?") ? "&" : "?") + "device_id=" + encodeURIComponent(device), { method });
+    }
     if (res.ok) {
       if (state.notice?.from === "control") setNotice(null);
       then?.();
       setTimeout(poll, 700);
+    } else if (res.status === 404 && !canWake()) {
+      controlNotice("Spotify has gone idle. Connect Spotify once more, and the app can wake it on your phone or computer.", [["Connect", connectSpotify]]);
     } else if (res.status === 404) {
-      controlNotice("Spotify isn't playing on any device. Start a song in the Spotify app first.");
+      controlNotice("Spotify isn't open on any of your devices. Open it, then tap Play again.", [["Open Spotify", openSpotify]]);
     } else if (res.status !== 429) {
       const reason = (await res.json().catch(() => null))?.error?.reason;
       const text = reason === "PREMIUM_REQUIRED" ? "Spotify only allows playback control with Premium." : "Spotify didn't take that command. Try it in the Spotify app.";
