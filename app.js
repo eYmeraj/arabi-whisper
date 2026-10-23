@@ -695,8 +695,15 @@ async function finishSpotifyLogin() {
   }
 }
 
+// iOS freezes the page when you leave the app, and a request in flight then may never answer, which would block
+// every later poll and button. So Spotify requests give up after 10 s, and those still open are dropped when the
+// page comes back (see the visibilitychange handler).
+let away = new AbortController();
+const spotifySignal = () => AbortSignal.any?.([away.signal, AbortSignal.timeout(10000)]) ?? AbortSignal.timeout(10000);
+
 async function spotifyToken(params) {
   const res = await fetch("https://accounts.spotify.com/api/token", {
+    signal: spotifySignal(),
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams(params),
@@ -724,7 +731,7 @@ const refresh = () =>
 
 async function spotifyFetch(url, init = {}) {
   if (Date.now() > store.get("spotify:tokens").expires) await refresh();
-  const send = () => fetch(url, { ...init, headers: { authorization: "Bearer " + store.get("spotify:tokens").access } });
+  const send = () => fetch(url, { ...init, signal: spotifySignal(), headers: { authorization: "Bearer " + store.get("spotify:tokens").access } });
   let res = await send();
   if (res.status === 401) {
     await refresh();
@@ -1213,6 +1220,8 @@ setInterval(poll, POLL_MS);
 setInterval(tick, 250);
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) return;
-  poll();
+  away.abort(); // requests left from before the page was frozen
+  away = new AbortController();
+  setTimeout(poll); // once the dropped check has let go
   renderTabs(); // cards may have come due while the page was away
 });
