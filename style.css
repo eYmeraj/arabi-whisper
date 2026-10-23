@@ -321,11 +321,18 @@ button {
 /* waiting for the sync database (orange) or for Gemini (Google's colors, turning) */
 .notice[data-wait="db"] .notice-text::before {
   background: #f38020;
+  box-shadow: 0 0 3px 1px rgb(243 128 32 / 0.45);
   animation: pulse 1.2s ease-in-out infinite;
 }
 
 .notice[data-wait="gemini"] .notice-text::before {
-  background: conic-gradient(#4285f4 0 25%, #ea4335 0 50%, #fbbc05 0 75%, #34a853 0);
+  background: conic-gradient(#4285f4, #ea4335, #fbbc05, #34a853, #4285f4);
+  /* each side glows in its own color, and turns with the dot */
+  box-shadow:
+    -1px -1px 3px rgb(66 133 244 / 0.5),
+    1px -1px 3px rgb(234 67 53 / 0.5),
+    1px 1px 3px rgb(251 188 5 / 0.5),
+    -1px 1px 3px rgb(52 168 83 / 0.5);
   animation: spin 1.2s linear infinite;
 }
 
