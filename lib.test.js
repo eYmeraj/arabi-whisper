@@ -13,6 +13,7 @@ import {
   quotaReset,
   review,
   mergeCards,
+  toggleUse,
   objectSplitter,
   createGeminiStream,
   StreamError,
@@ -181,4 +182,20 @@ test("mergeCards keeps the newer copy of each card, and removed cards stay remov
   assert.deepEqual(cards, { a: local.a, b: remote.b, c: local.c, d: local.d, e: remote.e });
   assert.deepEqual(toPush.map((c) => c.key), ["a", "c", "d"]);
   assert.deepEqual(mergeCards({}, {}), { cards: {}, toPush: [] });
+});
+
+test("toggleUse adds a word's lyric line to its flashcard, takes it off again, and removes the card with its last line", () => {
+  const word = { key: "حبيبي", rom: "habibi" };
+  const line1 = { song: "s1", line: "يا حبيبي تعالى", en: "my love" };
+  const line2 = { song: "s2", line: "حبيبي يا عمري", en: "my darling" };
+  const card = toggleUse(undefined, word, line1, 10);
+  assert.deepEqual(card, { key: "حبيبي", ar: "حبيبي", rom: "habibi", uses: [line1], box: 0, due: 10, updated: 10 });
+  const both = toggleUse({ ...card, box: 3 }, word, line2, 20);
+  assert.deepEqual([both.uses, both.box, both.updated], [[line1, line2], 3, 20]); // progress kept
+  const one = toggleUse(both, word, { ...line1, en: "changed" }, 30); // the same line, whatever its notes say
+  assert.deepEqual([one.uses, one.deleted], [[line2], false]);
+  const gone = toggleUse(one, word, line2, 40);
+  assert.deepEqual([gone.uses, gone.deleted, gone.updated], [[], true, 40]);
+  const fresh = toggleUse(gone, word, line1, 50); // back after removal: a new card, due now
+  assert.deepEqual([fresh.uses, fresh.box, fresh.due, fresh.deleted], [[line1], 0, 50, undefined]);
 });

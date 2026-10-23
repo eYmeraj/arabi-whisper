@@ -2,7 +2,6 @@
 // devices share them. Only requests carrying the owner's token (the SYNC_TOKEN secret) get in.
 const ORIGINS = ["https://eymeraj.github.io", "http://127.0.0.1:8000"];
 const MAX_BYTES = 1_000_000; // a long song with word cards is well under 100 KB
-const TABLES = { songs: "songs", flashcards: "flashcards" }; // table names come from here, never from the URL
 
 const digest = async (s) => new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s || "")));
 // compares hashes, so the time taken says nothing about the token
@@ -28,9 +27,9 @@ export default {
       const { results } = await env.DB.prepare("SELECT data FROM flashcards").all();
       return reply(200, "[" + results.map((r) => r.data).join(",") + "]");
     }
-    const m = path.match(/^\/(songs|flashcards)\/([^/]{1,300})$/);
+    const m = path.match(/^\/(songs|flashcards)\/([^/]{1,300})$/); // only these two names can reach the SQL below
     if (!m) return reply(404);
-    const table = TABLES[m[1]];
+    const table = m[1];
     const key = decodeURIComponent(m[2]);
 
     if (req.method === "GET") {
