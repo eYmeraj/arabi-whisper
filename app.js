@@ -102,6 +102,7 @@ const state = {
   follow: true, // scroll along with the music
   loop: null, // {i, start, end}: the line being repeated
   loopSeeking: false, // a jump back to the loop's start is on its way to Spotify
+  seekTo: null, // {key, t}: a flashcard's song Spotify is skipping to, and where in it to start
   notice: null, // a Spotify or login problem to show
   card: null, // the <li> whose word card is open
   tab: "lyrics", // or "flashcards"
@@ -421,7 +422,7 @@ function flashButton(li, i) {
 
 // A flashcard's song from the card's line: Spotify plays it there and the lyrics follow as usual. Pasted lyrics
 // just open; without Spotify connected, the song opens in Spotify.
-function playUse(use) {
+async function playUse(use) {
   if (use.song.startsWith("paste:")) {
     const song = songs.get(use.song) || store.get("song:" + use.song);
     showTab("lyrics");
@@ -430,8 +431,14 @@ function playUse(use) {
   }
   if (!store.get("spotify:tokens")) return location.assign("https://open.spotify.com/track/" + use.song);
   showTab("lyrics");
-  // trackKey: the next poll opens the song even when Spotify was already on this track
-  control("PUT", "play", () => (state.trackKey = null), { uris: ["spotify:track:" + use.song], position_ms: use.t || 0 });
+  const uri = "spotify:track:" + use.song;
+  const t = use.t || 0;
+  if (state.playback?.key === use.song) return playFrom(t);
+  if (!state.playback) return control("PUT", "play", null, { uris: [uri], position_ms: t }); // nothing to carry on with after it anyway
+  // Queued and skipped to, so the playlist or album that was playing carries on after it. Played on its own (uris),
+  // the track replaces it, and Spotify has nothing to go on to: next does nothing.
+  state.seekTo = { key: use.song, t };
+  if (!((await control("POST", "queue?uri=" + encodeURIComponent(uri))) && (await control("POST", "next")))) state.seekTo = null;
 }
 
 // The button under a flashcard's lyric line that plays its song; none for pasted lyrics no longer on this device.
@@ -828,6 +835,12 @@ function onPlayback(data) {
   }
   const key = item.id || item.uri;
   state.playback = { key, playing: !!data.is_playing, progress: data.progress_ms || 0, at: performance.now() };
+  // a flashcard's song that Spotify was told to skip to: once it plays, start it at the card's line
+  const pending = state.seekTo;
+  if (pending && key !== state.trackKey) {
+    state.seekTo = null;
+    if (pending.key === key) playFrom(pending.t);
+  } else if (pending) setTimeout(poll, 700); // not there yet
   // Switch only when Spotify moves to another track, so pasted lyrics stay open while music plays.
   if (key === state.trackKey) return renderHeader();
   state.trackKey = key;
@@ -899,7 +912,7 @@ async function idleDevice() {
 const openSpotify = () => location.assign(state.playback?.key ? "spotify:track:" + state.playback.key : "spotify:");
 
 // Sends one player command, with an optional JSON body. `then` updates the screen at once; a poll shortly after
-// confirms what Spotify did.
+// confirms what Spotify did. True when Spotify took it.
 async function control(method, command, then, body) {
   if (needPermission()) return;
   const url = "https://api.spotify.com/v1/me/player/" + command;
@@ -914,6 +927,7 @@ async function control(method, command, then, body) {
       if (state.notice?.from === "control") setNotice(null);
       then?.();
       setTimeout(poll, 700);
+      return true;
     } else if (res.status === 404 && !canWake()) {
       controlNotice("Spotify has gone idle. Connect Spotify once more, and the app can wake it on your phone or computer.", [["Connect", connectSpotify]]);
     } else if (res.status === 404) {
@@ -926,6 +940,7 @@ async function control(method, command, then, body) {
   } catch {
     // offline: the next poll shows what is really playing
   }
+  return false;
 }
 
 function seek(ms) {
@@ -933,6 +948,11 @@ function seek(ms) {
     if (state.playback) Object.assign(state.playback, { progress: ms, at: performance.now() });
     state.follow = true;
   });
+}
+
+// Plays the song Spotify is on from `ms`, whether it was playing or paused.
+async function playFrom(ms) {
+  if ((await seek(ms)) && !state.playback?.playing) control("PUT", "play");
 }
 
 // Repeats lyric line i until stopped (null stops it): each time the line ends, tick() jumps back to its start.
