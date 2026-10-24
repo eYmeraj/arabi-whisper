@@ -725,6 +725,26 @@ body.live .line:not(.on) .rom {
   font-size: 0.9375rem;
 }
 
+.fc-song {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  margin-top: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fc-song:hover {
+  color: var(--ink);
+}
+
 .fc-actions {
   display: flex;
   flex-wrap: wrap;

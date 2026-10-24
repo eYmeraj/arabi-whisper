@@ -14,7 +14,8 @@ import {
   clock,
   review,
   mergeCards,
-  toggleUse,
+  wordKey,
+  refreshCard,
   objectSplitter,
   createGeminiStream,
   StreamError,
@@ -185,20 +186,28 @@ test("mergeCards keeps the newer copy of each card, and removed cards stay remov
   assert.deepEqual(mergeCards({}, {}), { cards: {}, toPush: [] });
 });
 
-test("toggleUse adds a word's lyric line to its flashcard, takes it off again, and removes the card with its last line", () => {
-  const word = { key: "حبيبي", rom: "habibi" };
-  const line1 = { song: "s1", line: "يا حبيبي تعالى", en: "my love" };
-  const line2 = { song: "s2", line: "حبيبي يا عمري", en: "my darling" };
-  const card = toggleUse(undefined, word, line1, 10);
-  assert.deepEqual(card, { key: "حبيبي", ar: "حبيبي", rom: "habibi", uses: [line1], box: 0, due: 10, updated: 10 });
-  const both = toggleUse({ ...card, box: 3 }, word, line2, 20);
-  assert.deepEqual([both.uses, both.box, both.updated], [[line1, line2], 3, 20]); // progress kept
-  const one = toggleUse(both, word, { ...line1, en: "changed" }, 30); // the same line, whatever its notes say
-  assert.deepEqual([one.uses, one.deleted], [[line2], false]);
-  const gone = toggleUse(one, word, line2, 40);
-  assert.deepEqual([gone.uses, gone.deleted, gone.updated], [[], true, 40]);
-  const fresh = toggleUse(gone, word, line1, 50); // back after removal: a new card, due now
-  assert.deepEqual([fresh.uses, fresh.box, fresh.due, fresh.deleted], [[line1], 0, 50, undefined]);
+test("wordKey gives spellings of one word the same flashcard", () => {
+  assert.equal(wordKey("(أيه)،"), wordKey("ايه"));
+  assert.equal(wordKey("حَبِيبِي"), "حبيبي");
+  assert.equal(wordKey("بـ"), "ب");
+  assert.notEqual(wordKey("عينه"), wordKey("عينة")); // ه and ة are different words
+});
+
+test("refreshCard takes a song's new results for the card's lines from it, and keeps progress", () => {
+  const song = {
+    key: "s1",
+    title: "Habibi",
+    lines: [{ t: 1000, text: "وحشاني ليه", n: 1 }],
+    unique: [{ n: 1, text: "وحشاني ليه" }],
+    conv: { 1: { rom: "wahshaani leih", en: "Why do I miss you?", words: [{ ar: "وحشاني", rom: "wahshaani", en: "I miss you", note: "" }, { ar: "ليه", rom: "leih", en: "why", note: "" }] } },
+  };
+  const other = { song: "s2", line: "ليه يا حبيبي", en: "why" };
+  const card = { key: "ليه", ar: "ليه", rom: "leh", box: 3, due: 9, updated: 1, uses: [{ song: "s1", line: "وحشاني ليه", lineRom: "old", lineEn: "Why do you miss me?", en: "what", note: "x" }, other] };
+  const next = refreshCard(card, song);
+  assert.deepEqual(next.uses, [{ song: "s1", title: "Habibi", t: 1000, line: "وحشاني ليه", lineRom: "wahshaani leih", lineEn: "Why do I miss you?", en: "why", note: "" }, other]);
+  assert.deepEqual([next.rom, next.box, next.due], ["leih", 3, 9]);
+  assert.equal(refreshCard(next, song), next); // nothing new: the same card
+  assert.equal(refreshCard(card, { ...song, key: "s3" }), card); // not from this song
 });
 
 test("clock shows a song position as m:ss, or h:mm:ss for long songs", () => {
