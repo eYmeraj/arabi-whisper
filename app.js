@@ -26,7 +26,7 @@ const SPOTIFY_CLIENT_ID = "545a023e91a7461cb5409aed0569ca8f"; // public by desig
 // see what's playing; play, pause, skip, seek; list devices, to wake an idle one
 const SPOTIFY_SCOPE = "user-read-currently-playing user-modify-playback-state user-read-playback-state";
 // Tried in order: the second one takes over when the first is out of free requests or overloaded.
-const MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite"];
+const MODELS = ["gemini-3.8-flash", "gemini-3.6-flash"]; // no Flash-Lite: its translations and spelling are too often wrong
 // The Cloudflare Worker that keeps converted songs for all your devices (worker/, see README). "" turns syncing off.
 const SYNC_URL = "https://arabi-whisper-sync.eycode.workers.dev";
 const POLL_MS = 5000;
