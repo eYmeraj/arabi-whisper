@@ -7,7 +7,7 @@ Read Egyptian Arabic songs the way they're sung. While a song plays on Spotify (
 - what it means in English
 - every word: tap it to see its meaning and a grammar note, and + to make it a flashcard
 
-The **Flashcards** tab is for practising those words any time, even with no song playing: the Arabic and its sound on the front; the meaning, the note and the lyric lines it came from on the back. Cards you know come back less often (after 1, 3, 7, 14, 30, then 90 days); "Again" brings a card back in the same session.
+The **Flashcards** tab is for practising those words any time, even with no song playing: the Arabic and its sound on the front; the meaning, the note and the lyric lines it came from on the back, each with its song: tap the song to play it on Spotify from that line. A word is one card, however it is spelled and whichever line you add it from. Cards you know come back less often (after 1, 3, 7, 14, 30, then 90 days); "Again" brings a card back in the same session.
 
 With timed lyrics, the line being sung lights up and the page scrolls along. The bar at the bottom shows how far into the song you are (1:27 of 2:31), plays, pauses and skips songs on Spotify, and tapping a line plays the song from there.
 
@@ -43,8 +43,8 @@ Put the Worker's address into `SYNC_URL` at the top of `app.js` and into `connec
 
 1. Every 5 seconds, while the page is visible, it asks Spotify what's playing ([currently-playing](https://developer.spotify.com/documentation/web-api/reference/get-the-users-currently-playing-track)). Playback buttons use Spotify's player commands, which need Premium and the "control playback" permission asked for at login. When Spotify has gone idle (its app paused or in the background for a while), Play wakes one of your devices that Spotify still lists, which needs the "read playback state" permission.
 2. It looks the song up on [LRCLIB](https://lrclib.net), a free lyrics database. It prefers Arabic script, then timed lyrics, and matches the track's length to within 8 seconds. If nothing is found, you can paste the lyrics.
-3. It sends each distinct line once to Gemini (`gemini-3.8-flash`, then `gemini-3.5-flash-lite` if that one is out of free requests or busy). A new song is one request, and the free tier allows 20 requests a day per model, reset at midnight Pacific time. The prompt and spelling rules are in `lib.js`. Results stream in line by line.
-4. Converted songs are saved in the browser, so replaying a song costs nothing. With the sync database, the app looks there before asking Gemini and saves each new song there too.
+3. It sends each distinct line once to Gemini (`gemini-3.8-flash`, then `gemini-3.6-flash` if that one is out of free requests or busy). A new song is one request, and the free tier allows 20 requests a day per model, so about 40 new songs a day, reset at midnight Pacific time. The prompt and spelling rules are in `lib.js`. Results stream in line by line.
+4. Converted songs are saved in the browser, so replaying a song costs nothing. With the sync database, the app looks there before asking Gemini and saves each new song there too. Every converted line is stamped with `CONVERSION` from `app.js`: lines with an older stamp are converted again when their song is opened (one request per song), and the flashcards from that song take the new results, keeping their progress.
 
 ## Run it locally
 
@@ -55,6 +55,7 @@ npm test    # unit tests for parsing, matching, the Gemini stream reader and the
 
 ## Changing things
 
-- **Gemini models**: `MODELS` in `app.js`. Google retires models over time; if the page says a model is no longer offered, put a current Flash model there.
+- **Gemini models**: `MODELS` in `app.js`. Google retires models over time; if the page says a model is no longer offered, put a current Flash model there. Avoid Flash-Lite models: on the test songs they broke the spelling rules and mistranslated lines. Pro models have no free tier.
 - **Spelling rules**: the prompt in `lib.js` and the **Sounds** guide in `index.html` describe the same rules. Change both together.
+- **Redoing saved songs**: after a change to the models or the prompt that makes earlier results worth redoing, raise `CONVERSION` in `app.js`.
 - **Logo**: `icon.svg` is the source. `apple-touch-icon.png` (the iPhone home screen icon) is the same image rendered at 180x180, so re-export it after changing the SVG.

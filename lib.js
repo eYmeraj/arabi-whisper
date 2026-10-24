@@ -255,21 +255,34 @@ export function review(card, gotIt, now = Date.now()) {
   return { box, due: now + WAITS[box - 1] * DAY };
 }
 
-export const sameUse = (a, b) => a.song === b.song && a.line === b.line;
+// A word as written in a lyric, without the punctuation around it: "(هواك)،" -> "هواك".
+export const bare = (s) => s.replace(/^[^\p{L}\p{M}']+|[^\p{L}\p{M}']+$/gu, "");
+
+/** A word's flashcard key: transcribers write vowel marks, ـ and the alefs (أ إ آ ا) loosely, so "أيه" and "ايه" share a card. */
+export const wordKey = (s) =>
+  bare(s)
+    .replace(/[\u064B-\u065F\u0670ـ]/g, "")
+    .replace(/[أإآٱ]/g, "ا");
 
 /**
- * The flashcard after "+" or "✓" in a word card. `use` is the lyric line the word was tapped in: it is added to the
- * card, or taken off when it is already there. Taking off the last line removes the card; adding to a removed card
- * starts a fresh one. `word` is {key, rom}.
+ * The flashcard after `song` was converted (again): each of its lyric lines from that song takes the song's current
+ * pronunciation, meaning and word notes, and the song's title and the line's start for playing it. Progress stays.
+ * The same object when nothing changed.
  */
-export function toggleUse(card, word, use, now) {
-  const uses = card && !card.deleted ? card.uses : [];
-  if (uses.some((u) => sameUse(u, use))) {
-    const rest = uses.filter((u) => !sameUse(u, use));
-    return { ...card, uses: rest, deleted: !rest.length, updated: now };
-  }
-  if (uses.length) return { ...card, uses: [...uses, use], updated: now };
-  return { key: word.key, ar: word.key, rom: word.rom, uses: [use], box: 0, due: now, updated: now };
+export function refreshCard(card, song) {
+  let rom = card.rom;
+  const uses = card.uses.map((use) => {
+    if (use.song !== song.key) return use;
+    const u = (song.unique || []).find((x) => x.text === use.line || song.conv?.[x.n]?.ar === use.line);
+    const conv = u && song.conv[u.n];
+    if (!conv) return use;
+    const w = lineWords(conv, u.text)?.find((w) => wordKey(w.ar) === wordKey(card.key));
+    if (w) rom = bare(w.rom) || w.rom;
+    const t = song.lines?.find((l) => l.n === u.n)?.t ?? null;
+    return { ...use, title: song.title, t, lineRom: conv.rom, lineEn: conv.en, ...(w && { en: w.en, note: w.note }) };
+  });
+  const next = { ...card, rom, uses };
+  return JSON.stringify(next) === JSON.stringify(card) ? card : next;
 }
 
 /**

@@ -17,8 +17,9 @@ import {
   quotaReset,
   review,
   mergeCards,
-  sameUse,
-  toggleUse,
+  bare,
+  wordKey,
+  refreshCard,
 } from "./lib.js";
 
 // ---- Configuration ----
@@ -26,7 +27,10 @@ const SPOTIFY_CLIENT_ID = "545a023e91a7461cb5409aed0569ca8f"; // public by desig
 // see what's playing; play, pause, skip, seek; list devices, to wake an idle one
 const SPOTIFY_SCOPE = "user-read-currently-playing user-modify-playback-state user-read-playback-state";
 // Tried in order: the second one takes over when the first is out of free requests or overloaded.
-const MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite"];
+const MODELS = ["gemini-3.8-flash", "gemini-3.6-flash"]; // no Flash-Lite: its translations and spelling are too often wrong
+// Stamped on every converted line. Raise it when better models or prompts make earlier results worth redoing: lines
+// with an older stamp are converted again when their song is opened (2: Flash-Lite dropped).
+const CONVERSION = 2;
 // The Cloudflare Worker that keeps converted songs for all your devices (worker/, see README). "" turns syncing off.
 const SYNC_URL = "https://arabi-whisper-sync.eycode.workers.dev";
 const POLL_MS = 5000;
@@ -179,7 +183,7 @@ function renderHeader() {
   el.chip.classList.toggle("on", here && playback.playing);
   const total = song?.unique?.length || 0;
   el.progress.hidden = !(song?.converting && total);
-  el.progress.firstElementChild.style.width = `${total ? (100 * Object.keys(song.conv).length) / total : 0}%`;
+  el.progress.firstElementChild.style.width = `${total ? (100 * fresh(song)) / total : 0}%`;
   renderPlayer();
 }
 
@@ -200,7 +204,7 @@ function songNotice(song) {
   if (!song) return null;
   if (song.status === "lyrics") return { text: "Finding the lyrics…" };
   const total = song.unique?.length || 0;
-  const done = Object.keys(song.conv || {}).length;
+  const done = fresh(song);
   if (!total || done === total) return null;
   if (song.waiting === "db") return { wait: "db", text: "Checking your saved songs…" };
   if (song.converting) return { wait: song.waiting, text: `Writing the pronunciation… ${done} of ${total} ${total === 1 ? "line" : "lines"}` };
@@ -325,8 +329,6 @@ function wordButtons(words, field) {
 }
 
 // ---- Word cards ----
-const bare = (s) => s.replace(/^[^\p{L}\p{M}']+|[^\p{L}\p{M}']+$/gu, ""); // "(هواك)،" -> "هواك"
-
 function openCard(li, i) {
   closeCard();
   const w = li.words[i];
@@ -377,13 +379,15 @@ el.content.addEventListener("click", (e) => {
 const flashcards = () => store.get("flashcards") || {};
 const liveCards = () => Object.values(flashcards()).filter((c) => !c.deleted);
 const PLUS = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>';
+const PLAY = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 5.7v12.6a.9.9 0 0 0 1.4.8l9.6-6.3a.9.9 0 0 0 0-1.6L9.4 4.9A.9.9 0 0 0 8 5.7Z"/></svg>';
 const CHECK = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
 // The line of the open word card, as a flashcard keeps it.
 function useOf(li, i) {
   const conv = state.song.conv[li.line.n];
   const w = li.words[i];
-  return { song: state.song.key, line: conv.ar || li.line.text, lineRom: conv.rom, lineEn: conv.en, en: w.en, note: w.note };
+  const { key, title } = state.song;
+  return { song: key, title, t: li.line.t, line: conv.ar || li.line.text, lineRom: conv.rom, lineEn: conv.en, en: w.en, note: w.note };
 }
 
 const sendFlashcard = (card) =>
@@ -395,23 +399,57 @@ function saveFlashcard(card) {
   renderTabs();
 }
 
-// "+" in a word card: adds the word, from this line, to the flashcards; "✓" takes this line off again.
+// "+" in a word card: adds the word, with this line, to the flashcards; "✓" (the word is a card, from any line) removes it.
 function flashButton(li, i) {
   const w = li.words[i];
-  const key = bare(w.ar);
-  const use = useOf(li, i);
-  const card = flashcards()[key];
-  const uses = card && !card.deleted ? card.uses : [];
-  const saved = uses.some((u) => sameUse(u, use));
-  const label = saved ? "Remove from flashcards" : "Add to flashcards";
+  const card = liveCards().find((c) => wordKey(c.key) === wordKey(w.ar));
+  const label = card ? "Remove from flashcards" : "Add to flashcards";
   const toggle = () => {
-    saveFlashcard(toggleUse(card, { key, rom: bare(w.rom) || w.rom }, use, Date.now()));
+    const now = Date.now();
+    saveFlashcard(
+      card
+        ? { ...card, deleted: true, updated: now }
+        : { key: wordKey(w.ar), ar: bare(w.ar), rom: bare(w.rom) || w.rom, uses: [useOf(li, i)], box: 0, due: now, updated: now },
+    );
     openCard(li, i);
     li.querySelector(".c-add")?.focus();
   };
-  const b = h("button", { class: "c-add" + (saved ? " on" : ""), type: "button", "aria-label": label, title: label, onclick: toggle });
-  b.innerHTML = saved ? CHECK : PLUS;
+  const b = h("button", { class: "c-add" + (card ? " on" : ""), type: "button", "aria-label": label, title: label, onclick: toggle });
+  b.innerHTML = card ? CHECK : PLUS;
   return b;
+}
+
+// A flashcard's song from the card's line: Spotify plays it there and the lyrics follow as usual. Pasted lyrics
+// just open; without Spotify connected, the song opens in Spotify.
+function playUse(use) {
+  if (use.song.startsWith("paste:")) {
+    const song = songs.get(use.song) || store.get("song:" + use.song);
+    showTab("lyrics");
+    show(song);
+    return convert(song);
+  }
+  if (!store.get("spotify:tokens")) return location.assign("https://open.spotify.com/track/" + use.song);
+  showTab("lyrics");
+  // trackKey: the next poll opens the song even when Spotify was already on this track
+  control("PUT", "play", () => (state.trackKey = null), { uris: ["spotify:track:" + use.song], position_ms: use.t || 0 });
+}
+
+// The button under a flashcard's lyric line that plays its song; none for pasted lyrics no longer on this device.
+function songButton(use) {
+  const known = songs.get(use.song) || store.get("song:" + use.song);
+  if (use.song.startsWith("paste:") && !known) return null;
+  const b = h("button", { class: "fc-song", type: "button", onclick: () => playUse(use) }, use.title || known?.title || "Play the song");
+  b.insertAdjacentHTML("afterbegin", PLAY);
+  return b;
+}
+
+// After `song` is converted (again), its flashcards take the new pronunciation and meanings.
+function refreshFlashcards(song) {
+  const now = Date.now();
+  for (const card of liveCards()) {
+    const next = refreshCard(card, song);
+    if (next !== card) saveFlashcard({ ...next, updated: now });
+  }
 }
 
 // Fetches the database's flashcards and merges them with this device's. True when anything changed here.
@@ -519,7 +557,7 @@ function doneView() {
 }
 
 // The card's word, marked in a lyric line.
-const marked = (line, key) => line.split(/(\s+)/).map((part) => (bare(part) === key ? h("mark", { text: part }) : part));
+const marked = (line, key) => line.split(/(\s+)/).map((part) => (wordKey(part) === wordKey(key) ? h("mark", { text: part }) : part));
 
 function practiceView(card) {
   const p = state.practice;
@@ -542,6 +580,7 @@ function practiceView(card) {
               h("p", { class: "fc-line", lang: "ar", dir: "rtl" }, marked(u.line, card.key)),
               h("p", { class: "fc-line-rom", text: u.lineRom }),
               u.lineEn && h("p", { class: "fc-line-en", text: u.lineEn }),
+              songButton(u),
             ),
           ),
         ),
@@ -732,7 +771,7 @@ const refresh = () =>
 
 async function spotifyFetch(url, init = {}) {
   if (Date.now() > store.get("spotify:tokens").expires) await refresh();
-  const send = () => fetch(url, { ...init, signal: spotifySignal(), headers: { authorization: "Bearer " + store.get("spotify:tokens").access } });
+  const send = () => fetch(url, { ...init, signal: spotifySignal(), headers: { ...init.headers, authorization: "Bearer " + store.get("spotify:tokens").access } });
   let res = await send();
   if (res.status === 401) {
     await refresh();
@@ -859,15 +898,17 @@ async function idleDevice() {
 // Opens the song in the Spotify app (iOS asks first), which makes that phone a device again.
 const openSpotify = () => location.assign(state.playback?.key ? "spotify:track:" + state.playback.key : "spotify:");
 
-// Sends one player command. `then` updates the screen at once; a poll shortly after confirms what Spotify did.
-async function control(method, command, then) {
+// Sends one player command, with an optional JSON body. `then` updates the screen at once; a poll shortly after
+// confirms what Spotify did.
+async function control(method, command, then, body) {
   if (needPermission()) return;
   const url = "https://api.spotify.com/v1/me/player/" + command;
+  const init = { method, ...(body && { body: JSON.stringify(body), headers: { "content-type": "application/json" } }) };
   try {
-    let res = await spotifyFetch(url, { method });
+    let res = await spotifyFetch(url, init);
     if (res.status === 404) {
       const device = await idleDevice();
-      if (device) res = await spotifyFetch(url + (url.includes("?") ? "&" : "?") + "device_id=" + encodeURIComponent(device), { method });
+      if (device) res = await spotifyFetch(url + (url.includes("?") ? "&" : "?") + "device_id=" + encodeURIComponent(device), init);
     }
     if (res.ok) {
       if (state.notice?.from === "control") setNotice(null);
@@ -974,6 +1015,9 @@ async function loadLyrics(song) {
 }
 
 // ---- Pronunciation (Gemini) ----
+// Lines converted with the current CONVERSION; older ones stay on screen until they are redone.
+const fresh = (song) => (song.unique || []).filter((u) => song.conv?.[u.n]?.v === CONVERSION).length;
+
 class GeminiError extends Error {
   constructor(status, reason, message, model, daily = false) {
     super(message);
@@ -1027,13 +1071,15 @@ async function syncFetch(path, init = {}) {
   return fetch(SYNC_URL + path, { ...init, headers: { ...init.headers, authorization: "Bearer " + token } });
 }
 
-// Takes the database's copy of `song` when it has more lines converted. True when it did.
+// Takes the database's copy of `song` when it has more lines converted with the current CONVERSION, or as many but
+// more lines in all. True when it did.
 async function pull(song) {
   try {
     const res = await syncFetch("/songs/" + encodeURIComponent(song.key));
     if (!res?.ok) return false;
     const remote = await res.json();
-    if (Object.keys(remote.conv || {}).length <= Object.keys(song.conv || {}).length) return false;
+    const count = (s) => Object.keys(s.conv || {}).length;
+    if ((fresh(remote) - fresh(song) || count(remote) - count(song)) <= 0) return false;
     Object.assign(song, remote, { uploaded: true });
     saveSong(song);
     return true;
@@ -1054,10 +1100,10 @@ async function push(song) {
   }
 }
 
-// Converts the lines of `song` that have no pronunciation yet, after checking the database for them. Results stream
-// in line by line and are saved as they come.
+// Converts the lines of `song` that have no pronunciation yet, or one from an older CONVERSION, after checking the
+// database for them. Results stream in line by line and are saved as they come.
 async function convert(song) {
-  const missing = () => (song.unique || []).filter((u) => !song.conv[u.n]);
+  const missing = () => (song.unique || []).filter((u) => song.conv[u.n]?.v !== CONVERSION);
   if (!missing().length || song.converting) {
     if (state.song === song) renderNotice();
     if (!song.converting && !song.uploaded && song.unique?.length) push(song); // converted, but not in the database yet
@@ -1069,6 +1115,7 @@ async function convert(song) {
   showProgress(song);
   const pulled = await pull(song);
   song.waiting = null;
+  if (pulled) refreshFlashcards(song);
   if (pulled && state.song === song) render();
   const key = store.get("gemini:key");
   const todo = missing();
@@ -1082,7 +1129,7 @@ async function convert(song) {
     const result = readResult(o, wanted);
     if (!result) return;
     wanted.delete(result.n);
-    song.conv[result.n] = result;
+    song.conv[result.n] = { ...result, v: CONVERSION };
     saveSong(song);
     if (state.song !== song) return;
     for (const li of state.lineEls) if (li.line?.n === result.n) fillLine(li, result);
@@ -1107,7 +1154,10 @@ async function convert(song) {
   } finally {
     song.converting = false;
     song.waiting = null;
-    if (wanted.size < todo.length) song.uploaded = false;
+    if (wanted.size < todo.length) {
+      song.uploaded = false;
+      refreshFlashcards(song);
+    }
     saveSong(song);
     showProgress(song);
     if (!song.uploaded) push(song);
