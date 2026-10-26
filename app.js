@@ -1297,6 +1297,8 @@ for (const b of document.querySelectorAll("[data-close]")) b.addEventListener("c
 for (const d of document.querySelectorAll("dialog")) d.addEventListener("click", (e) => e.target === d && d.close()); // click outside
 
 // ---- Start ----
+navigator.serviceWorker?.register("sw.js").catch(() => {}); // the copy that opens the page offline; online it works without it
+addEventListener("online", syncFlashcards); // practised offline: send the progress
 const last = store.get("song:" + (store.get("songs") || []).at(-1));
 if (last) {
   songs.set(last.key, last);
