@@ -16,6 +16,8 @@ import {
   createGeminiStream,
   quotaReset,
   review,
+  sides,
+  practiceQueue,
   mergeCards,
   bare,
   wordKey,
@@ -106,7 +108,7 @@ const state = {
   notice: null, // a Spotify or login problem to show
   card: null, // the <li> whose word card is open
   tab: "lyrics", // or "flashcards"
-  practice: null, // {queue: [card keys], flipped, all}: the flashcard session
+  practice: null, // {queue: [{key, dir}], flipped, all}: the flashcard session, a card side at a time (lib.js sides)
 };
 const songs = new Map(); // songs opened in this session, so a conversion running in the background keeps its object
 
@@ -410,7 +412,7 @@ function flashButton(li, i) {
     saveFlashcard(
       card
         ? { ...card, deleted: true, updated: now }
-        : { key: wordKey(w.ar), ar: bare(w.ar), rom: bare(w.rom) || w.rom, uses: [useOf(li, i)], box: 0, due: now, updated: now },
+        : { key: wordKey(w.ar), ar: bare(w.ar), rom: bare(w.rom) || w.rom, uses: [useOf(li, i)], box: 0, due: now, reverse: { box: 0, due: now }, updated: now },
     );
     openCard(li, i);
     li.querySelector(".c-add")?.focus();
@@ -477,7 +479,7 @@ async function syncFlashcards() {
 
 function renderTabs() {
   const now = Date.now();
-  const due = liveCards().filter((c) => c.due <= now).length;
+  const due = liveCards().flatMap(sides).filter((s) => s.due <= now).length;
   el.dueCount.hidden = !due;
   el.dueCount.textContent = due;
   el.tabFlash.setAttribute("aria-label", due ? `Flashcards, ${due} due` : "Flashcards");
@@ -509,29 +511,21 @@ async function showTab(tab) {
   }
 }
 
-// Due cards, the longest overdue first; or every card, shuffled.
+// Due card sides, the longest overdue first; or every side, shuffled.
 function startPractice(all) {
-  const now = Date.now();
-  const cards = liveCards().filter((c) => all || c.due <= now);
-  if (all) {
-    for (let i = cards.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [cards[i], cards[j]] = [cards[j], cards[i]];
-    }
-  } else cards.sort((a, b) => a.due - b.due);
-  state.practice = { queue: cards.map((c) => c.key), flipped: false, all, started: false };
+  state.practice = { queue: practiceQueue(liveCards(), all), flipped: false, all, started: false };
 }
 
 function renderFlashcards() {
   if (state.tab !== "flashcards") return;
   if (!state.practice) startPractice(false);
   const all = flashcards();
-  state.practice.queue = state.practice.queue.filter((k) => all[k] && !all[k].deleted);
+  state.practice.queue = state.practice.queue.filter((s) => all[s.key] && !all[s.key].deleted);
   // cards that came due meanwhile (from another device, say): practise them too instead of saying "all done"
-  if (!state.practice.queue.length && !state.practice.all && liveCards().some((c) => c.due <= Date.now())) startPractice(false);
+  if (!state.practice.queue.length && !state.practice.all && liveCards().flatMap(sides).some((s) => s.due <= Date.now())) startPractice(false);
   const p = state.practice;
-  const card = all[p.queue[0]];
-  el.flashcards.replaceChildren(liveCards().length ? (card ? practiceView(card) : doneView()) : noCardsView());
+  const side = p.queue[0];
+  el.flashcards.replaceChildren(liveCards().length ? (side ? practiceView(all[side.key], side.dir) : doneView()) : noCardsView());
   if (p.flipped) el.flashcards.querySelector(".fc-actions .btn")?.focus({ preventScroll: true });
 }
 
@@ -547,7 +541,7 @@ function noCardsView() {
 
 function doneView() {
   const cards = liveCards();
-  const next = Math.min(...cards.map((c) => c.due));
+  const next = Math.min(...cards.flatMap(sides).map((s) => s.due));
   const days = Math.max(1, Math.round((new Date(next).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86400000));
   const when = new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(days, "day");
   return h(
@@ -566,16 +560,21 @@ function doneView() {
 // The card's word, marked in a lyric line.
 const marked = (line, key) => line.split(/(\s+)/).map((part) => (wordKey(part) === wordKey(key) ? h("mark", { text: part }) : part));
 
-function practiceView(card) {
+// One side of a card (lib.js sides): "ar" asks for the meaning of the Arabic, "en" for the Arabic of the meaning. The
+// back shows both, the notes and the card's lyric lines.
+function practiceView(card, dir) {
   const p = state.practice;
   const flip = () => {
     p.flipped = p.started = true;
     renderFlashcards();
   };
   const unique = (field) => [...new Set(card.uses.map((u) => u[field]).filter(Boolean))];
+  const word = [h("p", { class: "fc-ar", lang: "ar", dir: "rtl", text: card.ar }), h("p", { class: "fc-rom", text: card.rom })];
+  const meaning = h("p", { class: "fc-en", text: unique("en").join(" · ") || "No meaning given" });
   const face = p.flipped
     ? [
-        h("p", { class: "fc-en", text: unique("en").join(" · ") || "No meaning given" }),
+        h("div", { class: "fc-word" }, word),
+        meaning,
         ...unique("note").map((note) => h("p", { class: "fc-note", text: note })),
         h(
           "ul",
@@ -592,11 +591,14 @@ function practiceView(card) {
           ),
         ),
       ]
-    : [h("p", { class: "fc-ar", lang: "ar", dir: "rtl", text: card.ar }), h("p", { class: "fc-rom", text: card.rom })];
+    : dir === "ar"
+      ? word
+      : meaning;
   const rate = (gotIt) => {
-    const key = p.queue.shift();
-    saveFlashcard({ ...card, ...review(card, gotIt), updated: Date.now() });
-    if (!gotIt) p.queue.push(key); // comes back later in this session
+    const side = p.queue.shift();
+    const progress = dir === "ar" ? review(card, gotIt) : { reverse: review(card.reverse || {}, gotIt) };
+    saveFlashcard({ ...card, ...progress, updated: Date.now() });
+    if (!gotIt) p.queue.push(side); // comes back later in this session
     p.flipped = false;
     renderFlashcards();
   };
@@ -1295,6 +1297,8 @@ for (const b of document.querySelectorAll("[data-close]")) b.addEventListener("c
 for (const d of document.querySelectorAll("dialog")) d.addEventListener("click", (e) => e.target === d && d.close()); // click outside
 
 // ---- Start ----
+navigator.serviceWorker?.register("sw.js").catch(() => {}); // the copy that opens the page offline; online it works without it
+addEventListener("online", syncFlashcards); // practised offline: send the progress
 const last = store.get("song:" + (store.get("songs") || []).at(-1));
 if (last) {
   songs.set(last.key, last);

@@ -255,6 +255,33 @@ export function review(card, gotIt, now = Date.now()) {
   return { box, due: now + WAITS[box - 1] * DAY };
 }
 
+/**
+ * The two ways a card is practised, each with its own box and due time: "ar" shows the Arabic and asks for the
+ * meaning (box and due on the card), "en" shows the meaning and asks for the Arabic (card.reverse; due at once on
+ * cards made before there were two sides). A card with no meaning is practised only from the Arabic.
+ */
+export const sides = (card) => [
+  { key: card.key, dir: "ar", due: card.due },
+  ...(card.uses.some((u) => u.en) ? [{ key: card.key, dir: "en", due: card.reverse?.due ?? 0 }] : []),
+];
+
+/**
+ * A practice session, as [{key, dir}]: the due sides of `cards`, the longest overdue first, or all of them shuffled.
+ * A card's second side waits until every card has come up once, so that one side doesn't give the other away.
+ */
+export function practiceQueue(cards, all, now = Date.now()) {
+  const queue = cards.flatMap(sides).filter((s) => all || s.due <= now);
+  if (!all) queue.sort((a, b) => a.due - b.due);
+  else
+    for (let i = queue.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [queue[i], queue[j]] = [queue[j], queue[i]];
+    }
+  const seen = new Set();
+  const first = queue.filter((s) => !seen.has(s.key) && seen.add(s.key));
+  return [...first, ...queue.filter((s) => !first.includes(s))];
+}
+
 // A word as written in a lyric, without the punctuation around it: "(هواك)،" -> "هواك".
 export const bare = (s) => s.replace(/^[^\p{L}\p{M}']+|[^\p{L}\p{M}']+$/gu, "");
 

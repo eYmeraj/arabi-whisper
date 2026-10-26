@@ -13,6 +13,8 @@ import {
   quotaReset,
   clock,
   review,
+  sides,
+  practiceQueue,
   mergeCards,
   wordKey,
   refreshCard,
@@ -170,6 +172,32 @@ test("review moves a card up a box on Got it, and back to the start on Again", (
   assert.deepEqual(review({ box: 2 }, true, now), { box: 3, due: now + 7 * day });
   assert.deepEqual(review({ box: 6 }, true, now), { box: 6, due: now + 90 * day }); // the last box stays
   assert.deepEqual(review({ box: 4 }, false, now), { box: 0, due: now });
+});
+
+test("sides practises a card both ways on their own schedules, and only from the Arabic without a meaning", () => {
+  const card = { key: "ليه", due: 5, uses: [{ en: "" }, { en: "why" }] };
+  assert.deepEqual(sides(card), [
+    { key: "ليه", dir: "ar", due: 5 },
+    { key: "ليه", dir: "en", due: 0 }, // a card from before there were two sides: due at once
+  ]);
+  assert.deepEqual(sides({ ...card, reverse: { box: 2, due: 9 } })[1], { key: "ليه", dir: "en", due: 9 });
+  assert.deepEqual(sides({ ...card, uses: [{ en: "" }] }), [{ key: "ليه", dir: "ar", due: 5 }]);
+});
+
+test("practiceQueue takes the due sides, longest overdue first, with each card's second side after every card's first", () => {
+  const uses = [{ en: "x" }];
+  const cards = [
+    { key: "a", due: 30, reverse: { due: 10 }, uses },
+    { key: "b", due: 20, uses }, // its reverse was never practised: due since 0
+    { key: "c", due: 99, reverse: { due: 99 }, uses }, // not due yet
+  ];
+  const order = (q) => q.map((s) => s.key + ":" + s.dir);
+  assert.deepEqual(order(practiceQueue(cards, false, 50)), ["b:en", "a:en", "b:ar", "a:ar"]);
+  const fresh = { key: "d", due: 40, reverse: { box: 0, due: 40 }, uses }; // just added: both sides due together
+  assert.deepEqual(order(practiceQueue([fresh], false, 50)), ["d:ar", "d:en"]); // the Arabic first
+  const all = practiceQueue(cards, true, 50);
+  assert.equal(all.length, 6);
+  assert.deepEqual(new Set(all.slice(0, 3).map((s) => s.key)), new Set(["a", "b", "c"])); // one side of each card first
 });
 
 test("mergeCards keeps the newer copy of each card, and removed cards stay removed", () => {
