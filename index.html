@@ -35,12 +35,473 @@
   <nav class="tabs" role="tablist" aria-label="View">
     <button id="tabLyrics" class="tab" role="tab" type="button" aria-controls="content" aria-selected="true">Lyrics</button>
     <button id="tabFlash" class="tab" role="tab" type="button" aria-controls="flashcards" aria-selected="false">Flashcards<span id="dueCount" class="due" hidden></span></button>
+    <button id="tabGrammar" class="tab" role="tab" type="button" aria-controls="grammar" aria-selected="false">Grammar</button>
   </nav>
   <div id="progress" class="progress" hidden><span></span></div>
 </header>
 
 <main id="content" class="page" role="tabpanel" aria-labelledby="tabLyrics"></main>
 <main id="flashcards" class="page" role="tabpanel" aria-labelledby="tabFlash" hidden></main>
+
+<!-- Spelled by the same rules as the lyrics (the prompt in lib.js) and the Sounds key below. <em> marks the part of
+     a word that changes. Checked against the Egyptian Arabic grammar on Wikipedia, Wiktionary and lisaanmasry.org. -->
+<main id="grammar" class="page" role="tabpanel" aria-labelledby="tabGrammar" hidden>
+  <ul id="topics" class="topics">
+    <li><button type="button" data-topic="possessives">
+      <span class="t-name">Possessives</span>
+      <span class="t-sub">My, your, his</span>
+      <span class="t-ex">albi · 'omrak · habibti</span>
+    </button></li>
+    <li><button type="button" data-topic="verbs">
+      <span class="t-name">Verbs</span>
+      <span class="t-sub">Past, now, will, commands and not</span>
+      <span class="t-ex">katab · beyektib · haktib</span>
+    </button></li>
+    <li><button type="button" data-topic="participles">
+      <span class="t-name">Participles</span>
+      <span class="t-sub">Want, know, need</span>
+      <span class="t-ex">'aayiz · 'arfa · mihtaag</span>
+    </button></li>
+    <li><button type="button" data-topic="pseudo-verbs">
+      <span class="t-name">Pseudo-verbs</span>
+      <span class="t-sub">Have, I'd love to, must</span>
+      <span class="t-ex">'andi · nifsi · laazim</span>
+    </button></li>
+  </ul>
+
+  <section id="possessives" class="topic" aria-labelledby="possessivesTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="possessivesTitle" tabindex="-1">Possessives</h1>
+    </div>
+    <p>My, your, his: whose it is goes on the end of the word, as in <b>albi</b>, my heart.</p>
+    <table class="gtable">
+      <caption>The endings</caption>
+      <thead>
+        <tr><th scope="col"><span class="sr-only">Whose</span></th><th scope="col">After a consonant <small>alam, pen</small></th><th scope="col">After a vowel <small>kursi, chair</small></th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">my</th><td><span class="pair"><b>alam<em>i</em></b> <span lang="ar" dir="rtl">قلمي</span></span></td><td><span class="pair"><b>kursi<em>yya</em></b> <span lang="ar" dir="rtl">كرسيّا</span></span></td></tr>
+        <tr><th scope="row">your m.</th><td><span class="pair"><b>alam<em>ak</em></b> <span lang="ar" dir="rtl">قلمك</span></span></td><td><span class="pair"><b>kurs<em>eek</em></b> <span lang="ar" dir="rtl">كرسيك</span></span></td></tr>
+        <tr><th scope="row">your f.</th><td><span class="pair"><b>alam<em>ik</em></b> <span lang="ar" dir="rtl">قلمِك</span></span></td><td><span class="pair"><b>kurs<em>eeki</em></b> <span lang="ar" dir="rtl">كرسيكي</span></span></td></tr>
+        <tr><th scope="row">his</th><td><span class="pair"><b>alam<em>u</em></b> <span lang="ar" dir="rtl">قلمه</span></span></td><td><span class="pair"><b>kurs<em>ee</em></b> <span lang="ar" dir="rtl">كرسيه</span></span></td></tr>
+        <tr><th scope="row">her</th><td><span class="pair"><b>alam<em>ha</em></b> <span lang="ar" dir="rtl">قلمها</span></span></td><td><span class="pair"><b>kurs<em>eeha</em></b> <span lang="ar" dir="rtl">كرسيها</span></span></td></tr>
+        <tr><th scope="row">our</th><td><span class="pair"><b>alam<em>na</em></b> <span lang="ar" dir="rtl">قلمنا</span></span></td><td><span class="pair"><b>kurs<em>eena</em></b> <span lang="ar" dir="rtl">كرسينا</span></span></td></tr>
+        <tr><th scope="row">your pl.</th><td><span class="pair"><b>alam<em>ku</em></b> <span lang="ar" dir="rtl">قلمكو</span></span></td><td><span class="pair"><b>kurs<em>eeku</em></b> <span lang="ar" dir="rtl">كرسيكو</span></span></td></tr>
+        <tr><th scope="row">their</th><td><span class="pair"><b>alam<em>hum</em></b> <span lang="ar" dir="rtl">قلمهم</span></span></td><td><span class="pair"><b>kurs<em>eehum</em></b> <span lang="ar" dir="rtl">كرسيهم</span></span></td></tr>
+      </tbody>
+    </table>
+    <p class="gnote">After a vowel, the vowel gets long and takes the stress: kur-<b>SEEK</b>, your chair. For <i>his</i>, that is all there is: kur-<b>SEE</b>, his chair.</p>
+    <p>The same endings go on any word: <b>'omri</b>, my life; <b>albak</b>, your heart; <b>habeebi</b>, my love.</p>
+    <h2>Changes to know</h2>
+    <div class="more">
+      <details>
+        <summary>Words ending in -a get a t back</summary>
+        <table class="gtable">
+          <caption>shanta, bag</caption>
+          <tbody>
+            <tr><th scope="row">my</th><td><b>shant<em>iti</em></b></td><th scope="row">her</th><td><b>shant<em>it-ha</em></b></td></tr>
+            <tr><th scope="row">your m.</th><td><b>shant<em>itak</em></b></td><th scope="row">our</th><td><b>shant<em>itna</em></b></td></tr>
+            <tr><th scope="row">your f.</th><td><b>shant<em>itik</em></b></td><th scope="row">your pl.</th><td><b>shant<em>itku</em></b></td></tr>
+            <tr><th scope="row">his</th><td><b>shant<em>itu</em></b></td><th scope="row">their</th><td><b>shant<em>it-hum</em></b></td></tr>
+          </tbody>
+        </table>
+        <p>Before -ha, -na, -ku and -hum it is always -it-. Before the other endings the i only comes after two consonants, as in shanta, or 'arabiyya, car: <b>'arabiyy<em>iti</em></b>, my car. After one consonant it doesn't: habeeba, love, <b>habib<em>ti</em></b>, my love (the ee gets short, as in the next rule).</p>
+      </details>
+      <details>
+        <summary>Long vowels get short before two consonants</summary>
+        <p>kitaab, book: kitaabi, kitaabak, kitaabu, but <b>kit<em>a</em>bha</b>, <b>kit<em>a</em>bna</b>, <b>kit<em>a</em>bhum</b>. ei gets short too: beiti, my house, but <b>b<em>e</em>tna</b>, our house.</p>
+      </details>
+      <details>
+        <summary>Two consonants at the end: a helping vowel</summary>
+        <p>ukht, sister: ukhti, ukhtak, ukhtik, ukhtu, but <b>ukht<em>a</em>ha</b>, <b>ukht<em>i</em>na</b>, <b>ukht<em>u</em>ku</b>, <b>ukht<em>u</em>hum</b>. The same with esm, name, so "what's her name?" is <b>esm<em>a</em>ha eih?</b></p>
+      </details>
+      <details>
+        <summary>Father and brother add -oo-</summary>
+        <table class="gtable">
+          <caption>abb, father</caption>
+          <tbody>
+            <tr><th scope="row">my</th><td><b>ab<em>ooya</em></b></td><th scope="row">her</th><td><b>ab<em>ooha</em></b></td></tr>
+            <tr><th scope="row">your m.</th><td><b>ab<em>ook</em></b></td><th scope="row">our</th><td><b>ab<em>oona</em></b></td></tr>
+            <tr><th scope="row">your f.</th><td><b>ab<em>ooki</em></b></td><th scope="row">your pl.</th><td><b>ab<em>ooku</em></b></td></tr>
+            <tr><th scope="row">his</th><td><b>ab<em>oo</em></b></td><th scope="row">their</th><td><b>ab<em>oohum</em></b></td></tr>
+          </tbody>
+        </table>
+        <p>After the -oo- come the endings for a vowel. The same with akh, brother: <b>akh<em>ooya</em></b>, my brother; <b>akh<em>ook</em></b>, your brother. Most people just say baba and mama.</p>
+      </details>
+      <details>
+        <summary>bitaa': belonging to</summary>
+        <p>Instead of an ending, Egyptians often put bitaa' after the word, which then takes el-. bitaa' matches the word:</p>
+        <table class="gtable">
+          <tbody>
+            <tr><th scope="row">masculine</th><td><b>el-mobayl bitaa'i</b></td><td>my phone</td></tr>
+            <tr><th scope="row">feminine</th><td><b>el-'arabiyya bita'ti</b></td><td>my car</td></tr>
+            <tr><th scope="row">plural</th><td><b>el-kutub bitoo'i</b></td><td>my books</td></tr>
+          </tbody>
+        </table>
+        <p>It takes the same endings: bitaa'ak, bita'ha, bita'na, bita'hum. It is the natural choice for words from other languages, and to stress whose it is. Family and the body always take the ending: ukhti, never el-ukht bita'ti.</p>
+      </details>
+      <details>
+        <summary>The same endings on 'and, ma'a and verbs</summary>
+        <p>They go on words like 'and (at) and ma'a (with): <b>'and<em>i</em></b>, I have (at me); <b>ma'aa<em>ya</em></b>, with me. On verbs and on 'aayiz, <i>me</i> is -ni: <b>shuft<em>ini</em></b>, you saw me; <b>'ayzaa<em>ni</em></b>, she wants me. So it is after min (from) and 'an (about): <b>min<em>ni</em></b>, <b>'an<em>ni</em></b>.</p>
+        <p><b>'ayzak ma'aaya 'ala tool ya habeebi</b>, I want you with me always, my love, has three: 'ayz<em>ak</em>, you; ma'aa<em>ya</em>, me; habeeb<em>i</em>, my.</p>
+      </details>
+    </div>
+  </section>
+
+  <section id="verbs" class="topic" aria-labelledby="verbsTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="verbsTitle" tabindex="-1">Verbs</h1>
+    </div>
+    <p>Every verb has two stems: <b>katab</b>, he wrote, and <b>yektib</b>, he writes. The past adds an ending for who; the present adds a prefix, and for some an ending too.</p>
+    <table class="gtable">
+      <caption>katab / yektib · write</caption>
+      <thead>
+        <tr><th scope="col"><span class="sr-only">Who</span></th><th scope="col">Past <small>wrote</small></th><th scope="col">Now · be- <small>write</small></th><th scope="col">Will · ha- <small>will write</small></th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">ana <small>I</small></th><td><b>katab<em>t</em></b></td><td><b><em>ba</em>ktib</b></td><td><b><em>ha</em>ktib</b></td></tr>
+        <tr><th scope="row">enta <small>you m.</small></th><td><b>katab<em>t</em></b></td><td><b><em>bete</em>ktib</b></td><td><b><em>hate</em>ktib</b></td></tr>
+        <tr><th scope="row">enti <small>you f.</small></th><td><b>katab<em>ti</em></b></td><td><b><em>bete</em>ktib<em>i</em></b></td><td><b><em>hate</em>ktib<em>i</em></b></td></tr>
+        <tr><th scope="row">huwwa <small>he</small></th><td><b>katab</b></td><td><b><em>beye</em>ktib</b></td><td><b><em>haye</em>ktib</b></td></tr>
+        <tr><th scope="row">hiyya <small>she</small></th><td><b>katab<em>it</em></b></td><td><b><em>bete</em>ktib</b></td><td><b><em>hate</em>ktib</b></td></tr>
+        <tr><th scope="row">ehna <small>we</small></th><td><b>katab<em>na</em></b></td><td><b><em>bene</em>ktib</b></td><td><b><em>hane</em>ktib</b></td></tr>
+        <tr><th scope="row">entu <small>you pl.</small></th><td><b>katab<em>tu</em></b></td><td><b><em>bete</em>ktib<em>u</em></b></td><td><b><em>hate</em>ktib<em>u</em></b></td></tr>
+        <tr><th scope="row">humma <small>they</small></th><td><b>katab<em>u</em></b></td><td><b><em>beye</em>ktib<em>u</em></b></td><td><b><em>haye</em>ktib<em>u</em></b></td></tr>
+      </tbody>
+    </table>
+    <p>The bare form is <i>now</i> without be-: <b>aktib</b>, <b>tektib</b>, <b>yektibu</b>. For ana, be- and ha- take over the a-: baktib, haktib. In fast speech the prefixes squeeze: beyektib sounds like byektib.</p>
+    <p class="gnote"><b>katabt</b> is both <i>I wrote</i> and <i>you wrote</i> (to a man), and <b>betektib</b> both <i>you write</i> (to a man) and <i>she writes</i>. The pronoun tells them apart: <b>enta katabt?</b> did you write?</p>
+    <table class="gtable">
+      <caption>When to use each</caption>
+      <tbody>
+        <tr><th scope="row" class="mark">be-</th><td>Now, or usually. <span class="ex"><b>baktib gawaab</b> I'm writing a letter</span><span class="ex"><b>baktib kull yom</b> I write every day</span></td></tr>
+        <tr><th scope="row" class="mark">ha-</th><td>Will. <span class="ex"><b>haktiblak bukra</b> I'll write to you tomorrow</span></td></tr>
+        <tr><th scope="row" class="mark">bare</th><td>After 'aayiz, laazim, mumkin and nifsi, and for a second verb. <span class="ex"><b>laazim aktib</b> I have to write</span></td></tr>
+        <tr><th scope="row" class="mark">kaan</th><td>With be-: was doing, or used to. <span class="ex"><b>kunt baktib</b> I was writing, or I used to write</span></td></tr>
+      </tbody>
+    </table>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>Not: ma-…-sh</summary>
+        <table class="gtable">
+          <tbody>
+            <tr><th scope="row"><b><em>ma-</em>katab<em>sh</em></b></th><td>he didn't write</td></tr>
+            <tr><th scope="row"><b><em>ma-</em>katabt<em>ish</em></b></th><td>I didn't write</td></tr>
+            <tr><th scope="row"><b><em>ma-</em>baktib<em>sh</em></b></th><td>I don't write</td></tr>
+            <tr><th scope="row"><b><em>ma-</em>tektib<em>sh</em>!</b></th><td>don't write! (to a man)</td></tr>
+            <tr><th scope="row"><b><em>mish</em> haktib</b></th><td>I won't write</td></tr>
+          </tbody>
+        </table>
+        <p>The future usually takes mish. Before -sh a last vowel gets long: katabu, <b>ma-katab<em>oo</em>sh</b>, they didn't write.</p>
+      </details>
+      <details>
+        <summary>Commands</summary>
+        <p>Take the <i>you</i> form, drop the te-, and start with e- where needed:</p>
+        <table class="gtable">
+          <thead>
+            <tr><th scope="col"><span class="sr-only">To</span></th><th scope="col">write</th><th scope="col">drink</th><th scope="col">go</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">to a man</th><td><b>ektib</b></td><td><b>eshrab</b></td><td><b>rooh</b></td></tr>
+            <tr><th scope="row">to a woman</th><td><b>ektib<em>i</em></b></td><td><b>eshrab<em>i</em></b></td><td><b>rooh<em>i</em></b></td></tr>
+            <tr><th scope="row">to a group</th><td><b>ektib<em>u</em></b></td><td><b>eshrab<em>u</em></b></td><td><b>rooh<em>u</em></b></td></tr>
+          </tbody>
+        </table>
+        <p>Irregular: <b>ta'aala</b>, come (ta'aali, ta'aalu); <b>kul</b>, eat; <b>khud</b>, take.</p>
+      </details>
+      <details>
+        <summary>The present vowel: learn verbs in pairs</summary>
+        <p>The vowel of the present stem can be i, a or u:</p>
+        <table class="gtable">
+          <tbody>
+            <tr><th scope="row"><b>katab / yekt<em>i</em>b</b></th><td>write</td></tr>
+            <tr><th scope="row"><b>shirib / yeshr<em>a</em>b</b></th><td>drink</td></tr>
+            <tr><th scope="row"><b>'amal / ye'm<em>i</em>l</b></th><td>do, make</td></tr>
+            <tr><th scope="row"><b>dakhal / yedkh<em>u</em>l</b></th><td>enter</td></tr>
+            <tr><th scope="row"><b>talab / yutl<em>u</em>b</b></th><td>order, ask for</td></tr>
+          </tbody>
+        </table>
+        <p>Verbs like shirib drop their second i before an ending that starts with a vowel: shiribt, I drank, but <b>shirbit</b>, she drank, and <b>shirbu</b>, they drank.</p>
+      </details>
+      <details>
+        <summary>Hollow verbs: a long vowel in the middle</summary>
+        <p>shaaf / yeshoof, see. In the past, the aa becomes a short u before an ending that starts with a consonant:</p>
+        <table class="gtable">
+          <tbody>
+            <tr><th scope="row">I, you m.</th><td><b>sh<em>u</em>ft</b></td><th scope="row">he</th><td><b>shaaf</b></td></tr>
+            <tr><th scope="row">you f.</th><td><b>sh<em>u</em>fti</b></td><th scope="row">she</th><td><b>shaafit</b></td></tr>
+            <tr><th scope="row">we</th><td><b>sh<em>u</em>fna</b></td><th scope="row">they</th><td><b>shaafu</b></td></tr>
+            <tr><th scope="row">you pl.</th><td><b>sh<em>u</em>ftu</b></td><th scope="row">I see</th><td><b>bashoof</b></td></tr>
+          </tbody>
+        </table>
+        <p>The same: raah / yerooh, go: <b>ruht</b>, I went; aal / ye'ool, say: <b>ult</b>, I said. Some take i: gaab / yegeeb, bring: <b>gibt</b>; naam / yenaam, sleep: <b>nimt</b>.</p>
+      </details>
+      <details>
+        <summary>Verbs ending in a vowel</summary>
+        <p>nisi / yensa, forget. Before an ending that starts with a consonant, the last vowel becomes ee; before a vowel, a y:</p>
+        <table class="gtable">
+          <tbody>
+            <tr><th scope="row">I, you m.</th><td><b>nis<em>ee</em>t</b></td><th scope="row">he</th><td><b>nisi</b></td></tr>
+            <tr><th scope="row">you f.</th><td><b>nis<em>ee</em>ti</b></td><th scope="row">she</th><td><b>nis<em>y</em>it</b></td></tr>
+            <tr><th scope="row">we</th><td><b>nis<em>ee</em>na</b></td><th scope="row">they</th><td><b>nis<em>y</em>u</b></td></tr>
+          </tbody>
+        </table>
+        <p>Present: ansa, tensa, tensi, yensa, nensa, tensu, yensu. The ending takes the place of the last a.</p>
+      </details>
+      <details>
+        <summary>Doubled verbs: -ei- in the past</summary>
+        <p>habb / yehebb, love. Before an ending that starts with a consonant, add -ei-:</p>
+        <table class="gtable">
+          <tbody>
+            <tr><th scope="row">I, you m.</th><td><b>habb<em>ei</em>t</b></td><th scope="row">he</th><td><b>habb</b></td></tr>
+            <tr><th scope="row">you f.</th><td><b>habb<em>ei</em>ti</b></td><th scope="row">she</th><td><b>habbit</b></td></tr>
+            <tr><th scope="row">we</th><td><b>habb<em>ei</em>na</b></td><th scope="row">they</th><td><b>habbu</b></td></tr>
+          </tbody>
+        </table>
+        <p>Present: <b>bahebb</b>, I love; <b>bahebbak</b>, I love you (to a man); <b>bahebbik</b>, I love you (to a woman).</p>
+      </details>
+      <details>
+        <summary>Come, eat, take</summary>
+        <table class="gtable">
+          <tbody>
+            <tr><th scope="row">come</th><td><b>ga / yeegi</b><span class="ex"><b>geit</b> I came · <b>gat</b> she came · <b>gum</b> they came</span></td></tr>
+            <tr><th scope="row">eat</th><td><b>kal / yaakul</b><span class="ex"><b>kalt</b> I ate · <b>baakul</b> I eat · <b>kul!</b> eat!</span></td></tr>
+            <tr><th scope="row">take</th><td><b>khad / yaakhud</b><span class="ex"><b>khadt</b> I took · <b>baakhud</b> I take · <b>khud!</b> take!</span></td></tr>
+          </tbody>
+        </table>
+        <p>For ana, the a- stretches to aa-: aagi, aakul. So <b>baagi</b>, I come, and <b>haagi</b>, I'll come.</p>
+      </details>
+      <details>
+        <summary>Longer verbs, the same endings</summary>
+        <table class="gtable">
+          <tbody>
+            <tr><th scope="row">speak</th><td><b>etkallim / yetkallim</b><span class="ex"><b>betetkallim 'arabi?</b> do you speak Arabic?</span></td></tr>
+            <tr><th scope="row">wait</th><td><b>estanna / yestanna</b><span class="ex"><b>estanneit</b> I waited</span></td></tr>
+            <tr><th scope="row">teach</th><td><b>'allim / ye'allim</b><span class="ex"><b>ba'allim</b> I teach</span></td></tr>
+          </tbody>
+        </table>
+      </details>
+      <details>
+        <summary>No "to be" in the present</summary>
+        <p><b>ana ta'baan</b>, I'm tired. The past and the future use kaan / yekoon:</p>
+        <table class="gtable">
+          <tbody>
+            <tr><th scope="row">past</th><td><b>kunt, kunti, kaan, kaanit, kunna, kuntu, kaanu</b><span class="ex">I or you m., you f., he, she, we, you pl., they</span></td></tr>
+            <tr><th scope="row">will</th><td><b>hakoon</b>, I'll be · <b>haykoon</b>, he'll be</td></tr>
+          </tbody>
+        </table>
+        <p>kaan is also how 'aayiz gets a past: <b>kunt 'aayiz</b>, I wanted.</p>
+      </details>
+    </div>
+  </section>
+
+  <section id="participles" class="topic" aria-labelledby="participlesTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="participlesTitle" tabindex="-1">Participles</h1>
+    </div>
+    <p>Want, know, need. Egyptian has no everyday verb for <i>want</i>: it says <b>'aayiz</b>, wanting. Like an adjective, it changes only for who wants: a man, a woman or a group. The examples are a man speaking to a man, unless they say otherwise.</p>
+    <table class="gtable">
+      <caption>'aayiz · want</caption>
+      <thead>
+        <tr><th scope="col">Who wants</th><th scope="col">Form</th><th scope="col">With</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">a man</th><td><span class="pair"><b>'aayiz</b> <span lang="ar" dir="rtl">عايز</span></span></td><td>ana, enta, huwwa</td></tr>
+        <tr><th scope="row">a woman</th><td><span class="pair"><b>'ayza</b> <span lang="ar" dir="rtl">عايزة</span></span></td><td>ana, enti, hiyya</td></tr>
+        <tr><th scope="row">a group</th><td><span class="pair"><b>'ayzeen</b> <span lang="ar" dir="rtl">عايزين</span></span></td><td>ehna, entu, humma</td></tr>
+      </tbody>
+    </table>
+    <p>So ana 'aayiz, enta 'aayiz and huwwa 'aayiz are I want, you want and he wants, and the pronoun usually stays. You'll also hear 'aawiz, 'awza, 'awzeen: the same word.</p>
+    <table class="gtable">
+      <caption>Five ways to use it</caption>
+      <tbody>
+        <tr><th scope="row">a thing</th><td><span class="ex"><b>ana 'aayiz ahwa</b> I want coffee</span><span class="ex"><b>ana 'ayza mayya</b> I want water (a woman)</span></td></tr>
+        <tr><th scope="row">doing</th><td><span class="ex"><b>ana 'aayiz arooh</b> I want to go</span><span class="ex"><b>hiyya 'ayza tenaam</b> she wants to sleep</span><span class="ex"><b>ehna 'ayzeen nesaafir</b> we want to travel</span></td></tr>
+        <tr><th scope="row">someone</th><td><span class="ex"><b>'ayzak</b> I want you</span><span class="ex"><b>'ayzu</b> I want it, or him</span></td></tr>
+        <tr><th scope="row">someone to do</th><td><span class="ex"><b>'ayzak teegi ma'aaya</b> I want you to come with me</span><span class="ex"><b>'ayizni a'mil eih?</b> what do you want me to do?</span></td></tr>
+        <tr><th scope="row">asking</th><td><span class="ex"><b>'aayiz eih?</b> what do you want?</span><span class="ex"><b>'ayza eih?</b> the same, to a woman</span><span class="ex"><b>'aayiz teshrab eih?</b> what do you want to drink?</span><span class="ex"><b>'ayza teshrabi eih?</b> the same, to a woman</span></td></tr>
+      </tbody>
+    </table>
+    <p class="gnote">The verb after 'aayiz is always bare, and it is for whoever does it. If that is the one who wants, they match: <b>ana 'aayiz arooh</b>. If it is someone else, put them on 'aayiz as an ending, and the verb is theirs: <b>'ayzak terooh</b>, I want you to go. Never barooh or harooh after 'aayiz.</p>
+    <table class="gtable">
+      <caption>With an ending: want you, want her</caption>
+      <thead>
+        <tr><th scope="col">Wanted</th><th scope="col">A man wants</th><th scope="col">A woman wants</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">me</th><td><b>'ayiz<em>ni</em></b> <small>a-YIZ-ni</small></td><td><b>'ayz<em>aani</em></b> <small>ay-ZAA-ni</small></td></tr>
+        <tr><th scope="row">you m.</th><td><b>'ayz<em>ak</em></b> <small>AY-zak</small></td><td><b>'ayz<em>aak</em></b> <small>ay-ZAAK</small></td></tr>
+        <tr><th scope="row">you f.</th><td><b>'ayz<em>ik</em></b> <small>AY-zik</small></td><td><b>'ayz<em>aaki</em></b> <small>ay-ZAA-ki</small></td></tr>
+        <tr><th scope="row">him, it</th><td><b>'ayz<em>u</em></b> <small>AY-zu</small></td><td><b>'ayz<em>aah</em></b> <small>ay-ZAA</small></td></tr>
+        <tr><th scope="row">her, it</th><td><b>'ayiz<em>ha</em></b> <small>a-YIZ-ha</small></td><td><b>'ayz<em>aaha</em></b> <small>ay-ZAA-ha</small></td></tr>
+        <tr><th scope="row">us</th><td><b>'ayiz<em>na</em></b> <small>a-YIZ-na</small></td><td><b>'ayz<em>aana</em></b> <small>ay-ZAA-na</small></td></tr>
+        <tr><th scope="row">you pl.</th><td><b>'ayiz<em>ku</em></b> <small>a-YIZ-ku</small></td><td><b>'ayz<em>aaku</em></b> <small>ay-ZAA-ku</small></td></tr>
+        <tr><th scope="row">them</th><td><b>'ayiz<em>hum</em></b> <small>a-YIZ-hum</small></td><td><b>'ayz<em>aahum</em></b> <small>ay-ZAA-hum</small></td></tr>
+      </tbody>
+    </table>
+    <p><b>huwwa 'ayizni</b>, he wants me. <b>'aayiz el-kitaab? aah, 'ayzu</b>, do you want the book? Yes, I want it. 'arabiyya, car, is feminine, so <b>'ayizha</b>, I want it.</p>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>Why the forms change</summary>
+        <p>A man's 'aayiz drops its i before an ending that starts with a vowel: 'aayiz + ak, <b>'ayzak</b>. Before one that starts with a consonant, the i stays and takes the stress, so the aa gets short: 'aayiz + ha, <b>'ayizha</b>.</p>
+        <p>A woman's 'ayza stretches its last a to aa before any ending, and the stress moves onto it: <b>'ayzaak</b>. That long aa is the only sign that a woman is speaking: AY-zak from a man, ay-ZAAK from a woman.</p>
+        <p>For a group, the ending goes on 'ayzeen: <b>'ayzeenak</b>, we or they want you; <b>'ayzeenu</b>, we or they want it.</p>
+      </details>
+      <details>
+        <summary>One sentence, four ways</summary>
+        <table class="gtable">
+          <caption>I want you with me always, my love</caption>
+          <tbody>
+            <tr><th scope="row">a man to a man</th><td><b>'ayz<em>ak</em> ma'aaya 'ala tool ya habeeb<em>i</em></b></td></tr>
+            <tr><th scope="row">a man to a woman</th><td><b>'ayz<em>ik</em> ma'aaya 'ala tool ya habib<em>ti</em></b></td></tr>
+            <tr><th scope="row">a woman to a man</th><td><b>'ayz<em>aak</em> ma'aaya 'ala tool ya habeeb<em>i</em></b></td></tr>
+            <tr><th scope="row">a woman to a woman</th><td><b>'ayz<em>aaki</em> ma'aaya 'ala tool ya habib<em>ti</em></b></td></tr>
+          </tbody>
+        </table>
+        <p>The aa of 'ayzaak and 'ayzaaki means a woman is speaking. The -i of 'ayzik and 'ayzaaki, and habibti, mean a woman is listening. ma'aaya, with me, never changes.</p>
+      </details>
+      <details>
+        <summary>Not, and the past</summary>
+        <table class="gtable">
+          <tbody>
+            <tr><th scope="row">don't want</th><td><b>mish 'aayiz</b><span class="ex"><b>ana mish 'aayiz arooh</b> I don't want to go</span><span class="ex"><b>mish 'ayzaak</b> I don't want you (a woman to a man)</span></td></tr>
+            <tr><th scope="row">wanted</th><td><b>kaan + 'aayiz</b>, with kaan changing for who<span class="ex"><b>kunt 'aayiz a'ullak</b> I wanted to tell you</span><span class="ex"><b>hiyya kaanit 'ayza teegi</b> she wanted to come</span></td></tr>
+            <tr><th scope="row">didn't want</th><td><b>ma-kuntish 'aayiz</b><span class="ex"><b>ma-kuntish 'aayiz amshi</b> I didn't want to leave</span></td></tr>
+            <tr><th scope="row">I'd like</th><td><b>kunt 'aayiz</b>, to be polite<span class="ex"><b>kunt 'ayza as'al so'aal</b> I'd like to ask a question (a woman)</span></td></tr>
+          </tbody>
+        </table>
+      </details>
+      <details>
+        <summary>The rest of the family</summary>
+        <p>Many everyday "verbs" are participles too, with the same rules: a form for a man, a woman and a group; no be- or ha-; mish for not; kaan for the past; and a woman's -a becomes -aa- before an ending.</p>
+        <table class="gtable">
+          <thead>
+            <tr><th scope="col">Meaning</th><th scope="col">A man · a woman · a group</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">know</th><td><b>'aarif · 'arfa · 'arfeen</b><span class="ex"><b>mish 'aarif</b> I don't know · <b>'arfu</b> I know him</span></td></tr>
+            <tr><th scope="row">understand</th><td><b>faahim · fahma · fahmeen</b><span class="ex"><b>faahim?</b> got it? · <b>enti fahmaani?</b> do you get me? (to a woman)</span></td></tr>
+            <tr><th scope="row">remember</th><td><b>faakir · fakra · fakreen</b><span class="ex"><b>enti fakraani?</b> do you remember me? (to a woman)</span></td></tr>
+            <tr><th scope="row">need</th><td><b>mihtaag · mihtaaga · mihtageen</b><span class="ex"><b>ana mihtaagak</b> I need you</span></td></tr>
+            <tr><th scope="row">going</th><td><b>raayih · rayha · rayheen</b><span class="ex"><b>raayih fein?</b> where are you going?</span></td></tr>
+            <tr><th scope="row">coming</th><td><b>gaay · gayya · gayyeen</b><span class="ex"><b>ana gaay haalan</b> I'm coming right now</span></td></tr>
+            <tr><th scope="row">seeing</th><td><b>shaayif · shayfa · shayfeen</b><span class="ex"><b>shaayif?</b> you see? · <b>shayfak</b> I see you</span></td></tr>
+            <tr><th scope="row">waiting</th><td><b>mistanni · mistanniyya · mistanniyyeen</b><span class="ex"><b>ana mistanneek</b> I'm waiting for you</span></td></tr>
+            <tr><th scope="row">living</th><td><b>saakin · sakna · sakneen</b><span class="ex"><b>saakin fein?</b> where do you live?</span></td></tr>
+            <tr><th scope="row">planning</th><td><b>naawi · nawya · nawyeen</b><span class="ex"><b>naawi te'mil eih?</b> what are you planning to do?</span></td></tr>
+            <tr><th scope="row">doing</th><td><b>'aamil · 'amla · 'amleen</b><span class="ex"><b>'aamil eih?</b> how are you? · <b>'amla eih?</b> to a woman</span></td></tr>
+          </tbody>
+        </table>
+        <p>With going, coming, wanting or knowing, a participle means right now, or even soon: <b>ana misaafir bukra</b>, I'm travelling tomorrow. With other actions it often means done: <b>ana waakil</b>, I've eaten (so I'm full).</p>
+      </details>
+      <details>
+        <summary>A real verb next to 'aayiz</summary>
+        <table class="gtable">
+          <thead>
+            <tr><th scope="col"><span class="sr-only">What</span></th><th scope="col">habb <small>love, a verb</small></th><th scope="col">'aayiz <small>want, a participle</small></th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">changes for</th><td>who: bahebb, bet-hebb, beyhebb</td><td>a man, a woman, a group: 'aayiz, 'ayza, 'ayzeen</td></tr>
+            <tr><th scope="row">I … you</th><td><b>bahebbak</b></td><td><b>'ayzak</b>; from a woman, <b>'ayzaak</b></td></tr>
+            <tr><th scope="row">he … you</th><td><b>beyhebbak</b></td><td><b>'ayzak</b>, the same as I want you</td></tr>
+            <tr><th scope="row">not</th><td><b>ma-bahebbaksh</b></td><td><b>mish 'ayzak</b></td></tr>
+            <tr><th scope="row">past</th><td><b>habbeitak</b></td><td><b>kunt 'ayzak</b></td></tr>
+            <tr><th scope="row">be-, ha-</th><td>yes</td><td>never</td></tr>
+          </tbody>
+        </table>
+      </details>
+      <details>
+        <summary>Common mistakes</summary>
+        <table class="gtable mistakes">
+          <thead>
+            <tr><th scope="col">Not, but</th><th scope="col">Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><del>ana ba'aayiz</del><span class="ex"><b>ana 'aayiz</b></span></td><td>never be- or ha-</td></tr>
+            <tr><td><del>ma-'aayizsh arooh</del><span class="ex"><b>mish 'aayiz arooh</b></span></td><td>not is mish</td></tr>
+            <tr><td><del>ana 'aayiz barooh</del><span class="ex"><b>ana 'aayiz arooh</b></span></td><td>the second verb is bare</td></tr>
+            <tr><td><del>ana 'aayiz yerooh</del><span class="ex"><b>ana 'aayiz arooh</b></span></td><td>the same person, the same form</td></tr>
+            <tr><td><del>'ayzak arooh</del><span class="ex"><b>'ayzak terooh</b></span></td><td>I want you to go: the verb is yours</td></tr>
+            <tr><td><del>ana 'aayiz</del><span class="ex"><b>ana 'ayza</b></span></td><td>from a woman: it follows who wants</td></tr>
+            <tr><td><del>'ayzak</del><span class="ex"><b>'ayzaak</b></span></td><td>from a woman: her -a gets long before an ending</td></tr>
+          </tbody>
+        </table>
+      </details>
+    </div>
+    <h2>Test yourself</h2>
+    <ol class="quiz">
+      <li>(a woman) I want to sleep.</li>
+      <li>(a man, to a woman) I want you to come.</li>
+      <li>They want tea.</li>
+      <li>(a woman) I didn't want to go.</li>
+      <li>(to a man) What do you want me to do?</li>
+    </ol>
+    <div class="more">
+      <details>
+        <summary>Answers</summary>
+        <ol class="quiz">
+          <li><b>ana 'ayza anaam</b></li>
+          <li><b>'ayzik teegi</b></li>
+          <li><b>humma 'ayzeen shaay</b></li>
+          <li><b>ma-kuntish 'ayza arooh</b></li>
+          <li><b>'ayizni a'mil eih?</b></li>
+        </ol>
+      </details>
+    </div>
+  </section>
+
+  <section id="pseudo-verbs" class="topic" aria-labelledby="pseudoVerbsTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="pseudoVerbsTitle" tabindex="-1">Pseudo-verbs</h1>
+    </div>
+    <p>Have, I'd love to, must. English says these with verbs. Egyptian uses a word with the endings from Possessives, where the ending says who, or a word that never changes.</p>
+    <table class="gtable">
+      <caption>'and- <span lang="ar" dir="rtl">عند</span> · have</caption>
+      <tbody>
+        <tr><th scope="row">I</th><td><b>'and<em>i</em></b></td><th scope="row">we</th><td><b>'and<em>ina</em></b></td></tr>
+        <tr><th scope="row">you m.</th><td><b>'and<em>ak</em></b></td><th scope="row">you pl.</th><td><b>'and<em>uku</em></b></td></tr>
+        <tr><th scope="row">you f.</th><td><b>'and<em>ik</em></b></td><th scope="row">they</th><td><b>'and<em>uhum</em></b></td></tr>
+        <tr><th scope="row">he</th><td><b>'and<em>u</em></b></td><th scope="row">she</th><td><b>'and<em>aha</em></b></td></tr>
+      </tbody>
+    </table>
+    <p>It means <i>at</i>: <b>'andi 'arabiyya</b>, I have a car. Not: <b>ma-'andeesh</b>, I don't have; <b>ma-'andaksh</b>, you don't have. Past: <b>kaan 'andi</b>, I had. Will: <b>haykoon 'andi</b>, I'll have.</p>
+    <table class="gtable">
+      <caption>ma'a- <span lang="ar" dir="rtl">مع</span> · with, have on you</caption>
+      <tbody>
+        <tr><th scope="row">me</th><td><b>ma'aa<em>ya</em></b></td><th scope="row">us</th><td><b>ma'aa<em>na</em></b></td></tr>
+        <tr><th scope="row">you m.</th><td><b>ma'aa<em>k</em></b></td><th scope="row">you pl.</th><td><b>ma'aa<em>ku</em></b></td></tr>
+        <tr><th scope="row">you f.</th><td><b>ma'aa<em>ki</em></b></td><th scope="row">them</th><td><b>ma'aa<em>hum</em></b></td></tr>
+        <tr><th scope="row">him</th><td><b>ma'aa<em>h</em></b></td><th scope="row">her</th><td><b>ma'aa<em>ha</em></b></td></tr>
+      </tbody>
+    </table>
+    <p><b>ma'aak filoos?</b> do you have money on you? <b>ma-ma'eesh</b>, I don't have any on me.</p>
+    <table class="gtable">
+      <caption>nifs- <span lang="ar" dir="rtl">نفس</span> · I'd love to</caption>
+      <tbody>
+        <tr><th scope="row"><b>nifsi arooh masr</b></th><td>I'd love to go to Egypt</td></tr>
+        <tr><th scope="row"><b>nifsi fi kunaafa</b></th><td>I'm craving kunafa</td></tr>
+        <tr><th scope="row"><b>nifsak fi eih?</b></th><td>what do you fancy?</td></tr>
+      </tbody>
+    </table>
+    <p>Literally <i>my soul</i>: the warm, wishful cousin of 'aayiz. It takes the same endings, <b>nifsi, nifsak, nifsik, nifsu, nifsaha, nifsina</b>, and the verb after it is bare, as after 'aayiz.</p>
+    <table class="gtable">
+      <caption>laazim, mumkin · must, can</caption>
+      <tbody>
+        <tr><th scope="row"><b>laazim amshi</b></th><td>I have to go</td></tr>
+        <tr><th scope="row"><b>mish laazim teegi</b></th><td>you don't have to come</td></tr>
+        <tr><th scope="row"><b>mumkin aagi ma'aak?</b></th><td>can I come with you?</td></tr>
+        <tr><th scope="row"><b>mumkin tektibli?</b></th><td>could you write to me?</td></tr>
+      </tbody>
+    </table>
+    <p>These two never change: the verb after them says who.</p>
+  </section>
+</main>
 
 <button id="followBtn" class="follow" type="button" hidden>Follow along</button>
 

@@ -7,6 +7,8 @@ Read Egyptian Arabic songs the way they're sung. While a song plays on Spotify (
 - what it means in English
 - every word: tap it to see its meaning and a grammar note, and + to make it a flashcard
 
+The **Grammar** tab has reference pages on possessive endings (albi, my heart), verbs, participles like 'aayiz (want) and pseudo-verbs like 'andi (I have), spelled the same way as the lyrics.
+
 The **Flashcards** tab is for practising those words any time, even with no song playing, and with no connection. Each word is practised both ways: from the Arabic and its sound to the meaning, and from the meaning to the Arabic. The back shows both, the note and the lyric lines the word came from, each with its song: tap the song to play it on Spotify from that line. A word is one card, however it is spelled and whichever line you add it from. Each way keeps its own schedule: what you know comes back less often (after 1, 3, 7, 14, 30, then 90 days), and "Again" brings it back in the same session.
 
 With timed lyrics, the line being sung lights up and the page scrolls along. The bar at the bottom shows how far into the song you are (1:27 of 2:31), plays, pauses and skips songs on Spotify, and tapping a line plays the song from there.
