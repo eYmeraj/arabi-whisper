@@ -26,7 +26,7 @@ export const ANSWERS = {
   1: { n: 1, rom: "leih ya habeebi", en: "Why, my love?", words: [word("ليه", "leih", "why", "question word"), word("يا", "ya", "oh"), word("حبيبي", "habeebi", "my love")] },
   2: { n: 2, rom: "eih elli hasal", en: "What happened?", words: [word("أيه", "eih", "what"), word("اللي", "elli", "that"), { ...word("حصل", "hasal", "happened", "past tense"), verb: "حصل" }] },
   3: { n: 3, rom: "ooli eih", en: "Tell me what", words: [word("قولي", "ooli", "tell me", "imperative + -i (me)"), word("ايه", "eih", "what")] },
-  4: { n: 4, rom: "leih betseebni", en: "Why are you leaving me?", words: [word("ليه", "leih", "why", "question word"), word("بتسيبني", "betseebni", "you leave me")] },
+  4: { n: 4, rom: "leih betseebni", en: "Why are you leaving me?", words: [word("ليه", "leih", "why", "question word"), { ...word("بتسيبني", "betseebni", "you leave me"), verb: "ساب" }] },
 };
 // The same lines from an older conversion, which spelled ليه differently.
 export const OLD_ANSWERS = JSON.parse(JSON.stringify(ANSWERS).replaceAll("leih", "leeh"));

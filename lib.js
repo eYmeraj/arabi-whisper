@@ -2,6 +2,9 @@
 
 export const hasArabic = (s) => /[؀-ۿ]/.test(s || "");
 
+/** An Arabic spelling for comparing: no vowel marks, one alef, one ya. */
+export const plainArabic = (s) => s.replace(/[\s\u0640\p{M}]/gu, "").replace(/[\u0622\u0623\u0625]/g, "ا").replace(/ى/g, "ي");
+
 // A line with no letters or digits ("♪", """"") is a gap, not lyrics. Transcribers often write و and prefixes
 // ending in ـ apart ("و أنساك", "فـ بالي"); they are joined to the next word, as Arabic writes them.
 const tidy = (s) =>
