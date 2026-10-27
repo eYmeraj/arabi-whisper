@@ -2,10 +2,80 @@
 // devices share them. Only requests carrying the owner's token (the SYNC_TOKEN secret) get in.
 const ORIGINS = ["https://eymeraj.github.io", "http://127.0.0.1:8000"];
 const MAX_BYTES = 1_000_000; // a long song with word cards is well under 100 KB
+const LISAANMASRY = "https://www.lisaanmasry.org/online/";
 
 const digest = async (s) => new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s || "")));
 // compares hashes, so the time taken says nothing about the token
 const sameSecret = async (a, b) => String(await digest(a)) === String(await digest(b));
+
+const decode = (s) => s.replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&#0?39;/g, "'").replace(/&quot;/g, '"');
+const text = (s) => decode(s.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
+// the site puts spaces and tatweels between letters and their vowel marks, to draw the marks apart
+const arabic = (s) => text(s).replace(/\u0640/g, "").replace(/\s+(?=\p{M})/gu, "");
+// for comparing spellings: no vowel marks, one alef, one ya
+const plain = (s) => s.replace(/[\s\u0640\p{M}]/gu, "").replace(/[\u0622\u0623\u0625]/g, "ا").replace(/ى/g, "ي");
+// stressed syllables are underlined mid-word (<u>'a</u>na), so tags here join letters instead of spacing words
+const pronounced = (cell) => text((cell.match(/<span class='pr'>(.*?)<\/span>/s)?.[1] ?? cell).replace(/<\/?[ui]>/g, ""));
+
+/**
+ * A verb page of lisaanmasry.org as {ar, rom, en, tenses: [{name, rows: [{en, rom, ar}]}]}, or null when it isn't one.
+ * The verb's preposition (عود على) is left out of ar, so ar is the verb itself.
+ */
+export function readVerbPage(html) {
+  const [head, ...parts] = html.split("<h1>").slice(1);
+  const word = head?.match(/Word:<\/td><td>(.*?)<td align='right'>(.*?)<\/td>/s);
+  if (!word) return null;
+  const tenses = parts.map((part) => ({
+    name: text(part.slice(0, part.indexOf("</h1>"))),
+    rows: [...part.matchAll(/<tr class='tr(?:even|odd)'>(.*?)<\/tr>/gs)].map(([, row]) => {
+      const cells = [...row.matchAll(/<td([^>]*)>(.*?)<\/td>/gs)];
+      return {
+        en: text(cells[0]?.[2] ?? ""),
+        rom: pronounced(cells.find(([, , c]) => c.includes("class='pr'"))?.[2] ?? ""),
+        ar: arabic(cells.find(([, a]) => a.includes("ar"))?.[2] ?? ""),
+      };
+    }),
+  }));
+  return {
+    ar: arabic(word[2].replace(/<i>.*?<\/i>/gs, "")),
+    rom: pronounced(word[1]),
+    en: pronounced(head.match(/Meaning:<\/td><td>(.*?)<td/s)?.[1] ?? ""),
+    tenses: tenses.filter((t) => t.rows.length),
+  };
+}
+
+// A verb's tables from lisaanmasry.org (© Mike Green, free for non-commercial use with credit), looked up the first
+// time the owner asks for that verb and kept here, so the site sees one visit per verb. A verb the site doesn't have
+// is kept as {none: true}; when the site doesn't answer, nothing is kept and the next ask tries again.
+async function verb(env, ar) {
+  const row = await env.DB.prepare("SELECT data FROM verbs WHERE key = ?").bind(ar).first();
+  if (row) return row.data;
+  const page = async (path) => {
+    const res = await fetch(LISAANMASRY + path, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) throw new Error(res.status);
+    return res.text();
+  };
+  let found = { key: ar, none: true };
+  try {
+    const results = await page("search.php?ui=en&language=EG&action=s&key=" + encodeURIComponent(ar));
+    const ids = [...new Set([...results.matchAll(/verb\.php\?[^'"]*?\bid=(\d+)/g)].map((m) => m[1]))];
+    for (const id of ids.slice(0, 3)) {
+      const url = LISAANMASRY + "verb.php?ui=en&id=" + id;
+      const v = readVerbPage(await page("verb.php?ui=en&id=" + id));
+      if (v && plain(v.ar) === plain(ar)) {
+        found = { key: ar, url, ...v };
+        break;
+      }
+    }
+  } catch {
+    return null;
+  }
+  const data = JSON.stringify(found);
+  await env.DB.prepare("INSERT INTO verbs (key, data, updated) VALUES (?1, ?2, ?3) ON CONFLICT (key) DO UPDATE SET data = ?2, updated = ?3")
+    .bind(ar, data, Date.now())
+    .run();
+  return data;
+}
 
 export default {
   async fetch(req, env) {
@@ -26,6 +96,11 @@ export default {
     if (path === "/flashcards" && req.method === "GET") {
       const { results } = await env.DB.prepare("SELECT data FROM flashcards").all();
       return reply(200, "[" + results.map((r) => r.data).join(",") + "]");
+    }
+    const v = path.match(/^\/verbs\/([^/]{1,200})$/);
+    if (v && req.method === "GET") {
+      const data = await verb(env, decodeURIComponent(v[1]));
+      return data ? reply(200, data) : reply(502);
     }
     const m = path.match(/^\/(songs|flashcards)\/([^/]{1,300})$/); // only these two names can reach the SQL below
     if (!m) return reply(404);

@@ -5,7 +5,7 @@ Read Egyptian Arabic songs the way they're sung. While a song plays on Spotify (
 - the Arabic, as written
 - how it sounds, in plain English letters (spelling guide under **Sounds**)
 - what it means in English
-- every word: tap it to see its meaning and a grammar note, and + to make it a flashcard
+- every word: tap it to see its meaning and a grammar note, and + to make it a flashcard. A verb also has its **Conjugation**: all its tenses, from the [lisaanmasry.org](https://www.lisaanmasry.org) Egyptian Arabic dictionary (© Mike Green, free for non-commercial use), shown as it has them, in its own spelling. This needs the sync database below
 
 The **Grammar** tab has reference pages on possessive endings (albi, my heart), verbs, participles like 'aayiz (want) and pseudo-verbs like 'andi (I have), spelled the same way as the lyrics.
 
@@ -29,7 +29,7 @@ Live at **https://eymeraj.github.io/arabi-whisper/**. It's a static page: your G
 4. Copy the app's **Client ID** into `SPOTIFY_CLIENT_ID` at the top of `app.js`. The Client ID is public by design, so it is fine in the code.
 5. If Spotify refuses access after you log in, add your Spotify account's email under the app's **User Management**.
 
-**3. Sync database (optional, free).** Without it, each device converts a song once. With it, a song converted on any of your devices is ready on all of them, and costs one Gemini request in total, and your flashcards and their progress follow you too. It is a [Cloudflare Worker](https://developers.cloudflare.com/workers/) with a [D1](https://developers.cloudflare.com/d1/) database (tables `songs` and `flashcards`, one row each), both on Cloudflare's free plan. From the `worker` folder:
+**3. Sync database (optional, free).** Without it, each device converts a song once. With it, a song converted on any of your devices is ready on all of them, and costs one Gemini request in total, and your flashcards and their progress follow you too. It is a [Cloudflare Worker](https://developers.cloudflare.com/workers/) with a [D1](https://developers.cloudflare.com/d1/) database (tables `songs` and `flashcards`, one row each), both on Cloudflare's free plan. It also looks up a verb on lisaanmasry.org the first time you open its conjugation and keeps it (table `verbs`), so the dictionary's site sees one visit per verb. From the `worker` folder:
 
 ```sh
 npx wrangler login
