@@ -108,7 +108,7 @@ const state = {
   seekTo: null, // {key, t}: a flashcard's song Spotify is skipping to, and where in it to start
   notice: null, // a Spotify or login problem to show
   card: null, // the <li> whose word card is open
-  tab: "lyrics", // or "flashcards"
+  tab: "lyrics", // or "flashcards", "grammar"
   practice: null, // {queue: [{key, dir}], flipped, all}: the flashcard session, a card side at a time (lib.js sides)
 };
 const songs = new Map(); // songs opened in this session, so a conversion running in the background keeps its object
@@ -148,8 +148,11 @@ const el = {
   trackLen: $("trackLen"),
   tabLyrics: $("tabLyrics"),
   tabFlash: $("tabFlash"),
+  tabGrammar: $("tabGrammar"),
   dueCount: $("dueCount"),
   flashcards: $("flashcards"),
+  grammar: $("grammar"),
+  topics: $("topics"),
 };
 
 function h(tag, props = {}, ...children) {
@@ -486,8 +489,10 @@ function renderTabs() {
   el.tabFlash.setAttribute("aria-label", due ? `Flashcards, ${due} due` : "Flashcards");
   el.tabLyrics.setAttribute("aria-selected", String(state.tab === "lyrics"));
   el.tabFlash.setAttribute("aria-selected", String(state.tab === "flashcards"));
+  el.tabGrammar.setAttribute("aria-selected", String(state.tab === "grammar"));
   el.content.hidden = state.tab !== "lyrics";
   el.flashcards.hidden = state.tab !== "flashcards";
+  el.grammar.hidden = state.tab !== "grammar";
 }
 
 async function showTab(tab) {
@@ -502,6 +507,7 @@ async function showTab(tab) {
     else scrollTo({ top: 0 });
     return;
   }
+  if (tab === "grammar") return scrollTo({ top: 0 });
   state.practice = null;
   renderFlashcards();
   scrollTo({ top: 0 });
@@ -628,6 +634,24 @@ function practiceView(card, dir) {
 
 el.tabLyrics.addEventListener("click", () => showTab("lyrics"));
 el.tabFlash.addEventListener("click", () => showTab("flashcards"));
+el.tabGrammar.addEventListener("click", () => showTab("grammar"));
+
+// ---- Grammar: the list of topics, or one topic (the pages are in index.html) ----
+// Hyphens don't break the line, as in the lyrics: bet-hebb and -ha stay whole.
+const grammarText = document.createTreeWalker(el.grammar, NodeFilter.SHOW_TEXT);
+while (grammarText.nextNode()) grammarText.currentNode.data = grammarText.currentNode.data.replaceAll("-", "\u2011");
+
+el.grammar.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-topic]");
+  if (!b) return;
+  const open = b.dataset.topic; // "" goes back to the list
+  const left = el.grammar.querySelector(".topic:not([hidden])");
+  for (const topic of el.grammar.querySelectorAll(".topic")) topic.hidden = topic.id !== open;
+  el.topics.hidden = !!open;
+  scrollTo({ top: 0 });
+  // the tapped button is hidden now: the focus moves to what took its place
+  (open ? $(open).querySelector("h1") : el.topics.querySelector(`[data-topic="${left.id}"]`)).focus();
+});
 
 // ---- Following the music ----
 function isLive() {
@@ -1315,8 +1339,9 @@ if (last) {
 }
 render();
 renderTabs();
-if (store.get("tab") === "flashcards") showTab("flashcards");
-else syncFlashcards();
+const lastTab = store.get("tab");
+if (["flashcards", "grammar"].includes(lastTab)) showTab(lastTab);
+if (lastTab !== "flashcards") syncFlashcards(); // the flashcards tab syncs as it opens
 await finishSpotifyLogin();
 render();
 if (state.song) convert(state.song); // finish lines left over from last time
