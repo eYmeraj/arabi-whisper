@@ -446,7 +446,7 @@ function useOf(li, i) {
   const conv = state.song.conv[li.line.n];
   const w = li.words[i];
   const { key, title } = state.song;
-  return { song: key, title, t: li.line.t, line: conv.ar || li.line.text, lineRom: conv.rom, lineEn: conv.en, en: w.en, note: w.note };
+  return { song: key, title, t: li.line.t, line: conv.ar || li.line.text, lineRom: conv.rom, lineEn: conv.en, en: w.en, note: w.note, verb: w.verb };
 }
 
 const sendFlashcard = (card) =>
@@ -635,6 +635,7 @@ function practiceView(card, dir) {
         h("div", { class: "fc-word" }, word),
         meaning,
         ...unique("note").map((note) => h("p", { class: "fc-note", text: note })),
+        ...unique("verb").map(verbRow),
         h(
           "ul",
           { class: "fc-uses" },

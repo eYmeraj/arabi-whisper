@@ -310,7 +310,7 @@ export function refreshCard(card, song) {
     const w = lineWords(conv, u.text)?.find((w) => wordKey(w.ar) === wordKey(card.key));
     if (w) rom = bare(w.rom) || w.rom;
     const t = song.lines?.find((l) => l.n === u.n)?.t ?? null;
-    return { ...use, title: song.title, t, lineRom: conv.rom, lineEn: conv.en, ...(w && { en: w.en, note: w.note }) };
+    return { ...use, title: song.title, t, lineRom: conv.rom, lineEn: conv.en, ...(w && { en: w.en, note: w.note, verb: w.verb }) };
   });
   const next = { ...card, rom, uses };
   return JSON.stringify(next) === JSON.stringify(card) ? card : next;

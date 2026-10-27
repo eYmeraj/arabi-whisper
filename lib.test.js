@@ -236,10 +236,15 @@ test("refreshCard takes a song's new results for the card's lines from it, and k
   const other = { song: "s2", line: "ليه يا حبيبي", en: "why" };
   const card = { key: "ليه", ar: "ليه", rom: "leh", box: 3, due: 9, updated: 1, uses: [{ song: "s1", line: "وحشاني ليه", lineRom: "old", lineEn: "Why do you miss me?", en: "what", note: "x" }, other] };
   const next = refreshCard(card, song);
-  assert.deepEqual(next.uses, [{ song: "s1", title: "Habibi", t: 1000, line: "وحشاني ليه", lineRom: "wahshaani leih", lineEn: "Why do I miss you?", en: "why", note: "" }, other]);
+  assert.deepEqual(next.uses, [{ song: "s1", title: "Habibi", t: 1000, line: "وحشاني ليه", lineRom: "wahshaani leih", lineEn: "Why do I miss you?", en: "why", note: "", verb: undefined }, other]);
   assert.deepEqual([next.rom, next.box, next.due], ["leih", 3, 9]);
   assert.equal(refreshCard(next, song), next); // nothing new: the same card
   assert.equal(refreshCard(card, { ...song, key: "s3" }), card); // not from this song
+
+  // a verb's card takes the verb its line names, for the verb's tables
+  const verbSong = { key: "s4", unique: [{ n: 1, text: "بحبك" }], conv: { 1: { rom: "bahebbak", words: [{ ar: "بحبك", rom: "bahebbak", en: "I love you", note: "", verb: "حب" }] } } };
+  const verbCard = { key: "بحبك", ar: "بحبك", rom: "bahebbak", uses: [{ song: "s4", line: "بحبك" }] };
+  assert.equal(refreshCard(verbCard, verbSong).uses[0].verb, "حب");
 });
 
 test("clock shows a song position as m:ss, or h:mm:ss for long songs", () => {
