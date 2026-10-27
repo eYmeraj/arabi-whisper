@@ -1139,14 +1139,248 @@ textarea {
   font-size: 1.0625rem;
 }
 
-.key .ex {
+.key .ex,
+.gtable .ex {
   display: block;
   margin-top: 2px;
   color: var(--ink-2);
 }
 
-.key b {
+.key b,
+.topic b {
   color: var(--ink);
+}
+
+/* ---- Grammar: a list of topics, then one topic's tables and notes ---- */
+
+.topics {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.topics li {
+  border-bottom: 1px solid var(--line);
+}
+
+.topics button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 12px;
+  width: 100%;
+  padding: 14px 4px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.topics button > span {
+  grid-column: 1;
+}
+
+/* a chevron: two borders of a small square, turned to point right */
+.topics button::after,
+.more summary::after {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-top: 2px solid var(--ink-3);
+  border-right: 2px solid var(--ink-3);
+  transform: rotate(45deg);
+}
+
+.topics button::after {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  align-self: center;
+}
+
+.t-name {
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.t-sub {
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+}
+
+.t-ex {
+  color: var(--ink-3);
+  font-size: 0.9375rem;
+}
+
+.topic {
+  display: grid;
+  gap: 16px;
+  text-wrap: pretty;
+}
+
+.topic-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: -10px;
+}
+
+.topic h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.topic h2 {
+  margin: 8px 0 -10px;
+  color: var(--ink-3);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.topic p {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+/* the part of a word that changes */
+.topic em {
+  color: var(--accent);
+  font-style: normal;
+}
+
+.topic del {
+  color: var(--ink-3);
+}
+
+.gtable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.gtable caption {
+  padding-bottom: 6px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.gtable th,
+.gtable td {
+  padding: 7px 14px 7px 0;
+  border-top: 1px solid var(--line);
+  text-align: left;
+  vertical-align: baseline;
+}
+
+.gtable :is(th, td):last-child {
+  padding-right: 0;
+}
+
+.gtable thead th {
+  color: var(--ink-2);
+  font-size: 0.8125rem;
+  line-height: 1.3;
+}
+
+.gtable tbody th {
+  color: var(--ink-2);
+  font-weight: 400;
+}
+
+.gtable .mark {
+  color: var(--gold);
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+/* room for the sentences, the reasons are short */
+.mistakes td:first-child {
+  width: 60%;
+}
+
+.gtable small {
+  display: block;
+  color: var(--ink-3);
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+/* a word and its Arabic, one at each end of the cell */
+.pair {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gtable [lang="ar"] {
+  color: var(--ink-2);
+  font-size: 1.0625rem;
+  line-height: 1.2;
+}
+
+.gnote {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 0.9375rem;
+}
+
+/* rules beyond the main table, one row each, opened with a tap */
+.more {
+  border-bottom: 1px solid var(--line);
+}
+
+.more details {
+  border-top: 1px solid var(--line);
+}
+
+.more summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 50px;
+  padding: 4px 0;
+  font-weight: 700;
+  list-style: none;
+  cursor: pointer;
+}
+
+.more summary::-webkit-details-marker {
+  display: none;
+}
+
+.more summary::after {
+  transition: transform 0.2s ease;
+}
+
+.more details[open] > summary::after {
+  transform: rotate(135deg);
+}
+
+.more details > :not(summary) {
+  margin-bottom: 10px;
+}
+
+.more details > :last-child {
+  margin-bottom: 16px;
+}
+
+.quiz {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 1.5em;
+  color: var(--ink-2);
 }
 
 [lang="ar"] {
