@@ -24,7 +24,7 @@ const word = (ar, rom, en, note = "") => ({ ar, rom, en, note });
 // Gemini's answer for each line.
 export const ANSWERS = {
   1: { n: 1, rom: "leih ya habeebi", en: "Why, my love?", words: [word("ليه", "leih", "why", "question word"), word("يا", "ya", "oh"), word("حبيبي", "habeebi", "my love")] },
-  2: { n: 2, rom: "eih elli hasal", en: "What happened?", words: [word("أيه", "eih", "what"), word("اللي", "elli", "that"), word("حصل", "hasal", "happened", "past tense")] },
+  2: { n: 2, rom: "eih elli hasal", en: "What happened?", words: [word("أيه", "eih", "what"), word("اللي", "elli", "that"), { ...word("حصل", "hasal", "happened", "past tense"), verb: "حصل" }] },
   3: { n: 3, rom: "ooli eih", en: "Tell me what", words: [word("قولي", "ooli", "tell me", "imperative + -i (me)"), word("ايه", "eih", "what")] },
   4: { n: 4, rom: "leih betseebni", en: "Why are you leaving me?", words: [word("ليه", "leih", "why", "question word"), word("بتسيبني", "betseebni", "you leave me")] },
 };
@@ -111,6 +111,19 @@ function fakeGemini(world, route) {
   return route.fulfill({ status: 200, headers: cors, contentType: "text/event-stream", body: events.map((e) => "data: " + JSON.stringify(e) + "\n\n").join("") });
 }
 
+// A verb's tables as the Worker gives them (made up, in lisaanmasry.org's layout and spelling).
+const VERB = {
+  key: "حصل",
+  url: "https://www.lisaanmasry.org/online/verb.php?ui=en&id=1",
+  ar: "حَصَل",
+  rom: "Hasal",
+  en: "happen",
+  tenses: [
+    { name: "Perfect", rows: [{ en: "It(m) happened", rom: "huwa Hasal", ar: "هُوَ حَصَل" }, { en: "It(f) happened", rom: "hiya Hasalit", ar: "هِيَ حَصَلِت" }] },
+    { name: "Bi-Imperfect", rows: [{ en: "It(m) happens", rom: "huwa biyiHSal", ar: "هُوَ بِيِحصَل" }] },
+  ],
+};
+
 // The sync Worker (worker/index.js): one row per song and per flashcard.
 function fakeSync(world, route) {
   const req = route.request();
@@ -118,6 +131,7 @@ function fakeSync(world, route) {
   const path = new URL(req.url()).pathname;
   if (path === "/") return route.fulfill({ status: 204, headers: cors });
   if (path === "/flashcards") return route.fulfill({ status: 200, headers: cors, body: JSON.stringify(Object.values(world.db.flashcards)) });
+  if (path.startsWith("/verbs/")) return route.fulfill({ status: 200, headers: cors, body: JSON.stringify(VERB) });
   const [, table, key] = path.match(/^\/(songs|flashcards)\/(.+)$/);
   const rows = world.db[table];
   if (req.method() === "PUT") {

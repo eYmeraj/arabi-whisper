@@ -1,10 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import worker from "./index.js";
+import worker, { readVerbPage } from "./index.js";
 
 // A stand-in for D1 that supports the statements the worker runs, one Map per table.
 function fakeDB() {
-  const tables = { songs: new Map(), flashcards: new Map() };
+  const tables = { songs: new Map(), flashcards: new Map(), verbs: new Map() };
   const table = (sql) => tables[sql.match(/(?:FROM|INTO) (\w+)/)[1]];
   return {
     rows: tables.songs,
@@ -67,4 +67,54 @@ test("sync worker keeps flashcards in their own table, and lists them all", asyn
   assert.equal(env.DB.tables.flashcards.size, 2);
   assert.equal((await call("GET", "/songs/" + encodeURIComponent("حبيبي"))).status, 404); // songs untouched
   assert.equal((await call("GET", "/other/x")).status, 404);
+});
+
+// A made-up verb page in lisaanmasry.org's layout: two tenses, two rows each.
+const row = (en, pr, ar) => `<tr class='treven'><td>${en}</td><td><span class='pr'>${pr}</span><span class='tr'>x</span></td><td class='ar' style='text-align:right'> ${ar}</td></tr>`;
+const VERB_PAGE =
+  "<h1>Verb details</h1><table><tr class='trhead'><td align=right>Word:</td><td><big><b><a href='word.php?id=1'><span class='pr'><u>ka</u>tab</span><span class='tr'>katab</span></a></b></big>&nbsp;<td align='right'><big><b> كـَتـَب </b></big></td></tr>" +
+  "<tr class='trhead'><td align=right>Meaning:</td><td><big><b><a href='word.php?id=2'><span class='pr'>write</span></a></b></big>&nbsp;<td align='right'></td></tr></table>" +
+  "<h1>Perfect</h1><p>past</p><table><tr class='trtitle'><td>English</td><td colspan=2>Egyptian</td></tr>" +
+  row("I wrote", "<u>'a</u>na <u>ka</u>tabt", "أنا َ كـَتـَبت") + row("He wrote", "<u>huwa</u> <u>ka</u>tab", "هـُو َ كـَتـَب") +
+  "</table><h1>Imperative</h1><table>" + row("You(m) write!", "<u>'ik</u>tib", "ا ِكتـِب") + "</table>";
+
+test("reads a verb page: the verb, its meaning and each tense's rows, with the Arabic drawn together", () => {
+  assert.deepEqual(readVerbPage(VERB_PAGE), {
+    ar: "كَتَب",
+    rom: "katab",
+    en: "write",
+    tenses: [
+      { name: "Perfect", rows: [{ en: "I wrote", rom: "'ana katabt", ar: "أناَ كَتَبت" }, { en: "He wrote", rom: "huwa katab", ar: "هُوَ كَتَب" }] },
+      { name: "Imperative", rows: [{ en: "You(m) write!", rom: "'iktib", ar: "اِكتِب" }] },
+    ],
+  });
+  assert.equal(readVerbPage("<h1>Search</h1>no verb here"), null);
+});
+
+test("looks a verb up on lisaanmasry once, then serves it from the database", async (t) => {
+  const asked = [];
+  let down = false;
+  t.mock.method(globalThis, "fetch", async (url) => {
+    asked.push(String(url));
+    if (down) throw new TypeError("fetch failed");
+    if (String(url).includes("search.php")) return new Response("<a href='verb.php?ui=en&id=7&cn=2'>other</a> <a href='verb.php?ui=en&id=9&cn=2'>katab</a>");
+    return new Response(String(url).endsWith("id=9") ? VERB_PAGE : VERB_PAGE.replace("كـَتـَب </b>", "قـَر َا </b>"));
+  });
+  assert.equal((await call("GET", "/verbs/" + encodeURIComponent("كتب"), { token: "wrong" })).status, 401);
+  assert.equal(asked.length, 0);
+
+  const res = await call("GET", "/verbs/" + encodeURIComponent("كتب"));
+  assert.equal(res.status, 200);
+  const v = await res.json();
+  assert.equal(v.url, "https://www.lisaanmasry.org/online/verb.php?ui=en&id=9"); // the one whose verb matches, not the first
+  assert.equal(v.tenses[0].rows[1].rom, "huwa katab");
+  assert.equal(asked.length, 3);
+  assert.equal((await call("GET", "/verbs/" + encodeURIComponent("كتب"))).status, 200);
+  assert.equal(asked.length, 3); // from the database
+
+  down = true;
+  assert.equal((await call("GET", "/verbs/" + encodeURIComponent("نسي"))).status, 502);
+  assert.equal(env.DB.tables.verbs.has("نسي"), false); // tried again next time
+  down = false;
+  assert.deepEqual(await (await call("GET", "/verbs/" + encodeURIComponent("نسي"))).json(), { key: "نسي", none: true });
 });

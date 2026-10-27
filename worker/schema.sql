@@ -11,3 +11,11 @@ CREATE TABLE IF NOT EXISTS flashcards (
   data TEXT NOT NULL,
   updated INTEGER NOT NULL
 );
+
+-- One row per verb looked up from a word card: data is the verb's tables from lisaanmasry.org in JSON, or {"none":true}
+-- when the site has no such verb. Fetched once per verb, then served from here.
+CREATE TABLE IF NOT EXISTS verbs (
+  key TEXT PRIMARY KEY,
+  data TEXT NOT NULL,
+  updated INTEGER NOT NULL
+);

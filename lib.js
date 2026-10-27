@@ -110,11 +110,12 @@ MEANING ("en")
 - Natural, faithful English for the line, read in the context of the whole song. Keep it short. No explanations here.
 
 WORDS ("words")
-- One entry per space-separated word of the line, in the same order, as {"ar","rom","en","note"}. Never merge or split words. A word with attached parts stays one entry (وبحبك = we-bahebbak); explain the parts in its note.
+- One entry per space-separated word of the line, in the same order, as {"ar","rom","en","note"}, plus "verb" for verbs. Never merge or split words. A word with attached parts stays one entry (وبحبك = we-bahebbak); explain the parts in its note.
 - ar: the word exactly as written in the line, in Arabic script, with any punctuation attached to it.
 - rom: its pronunciation, spelled exactly as in "rom". Joining the rom of all words with single spaces must give exactly "rom".
 - en: its meaning here, 1 to 4 words.
 - note: at most 12 words on grammar (prefixes, suffixes, tense, person), dialect or idiom. Only state what you are sure of. Use "" when there is nothing useful to add.
+- verb: only when the word is a verb (any tense, with or without prefixes and endings): the verb's "he" past form in Arabic script, without vowel marks, as a dictionary lists it (بيحبوها = حب, قلتلك = قال, هنسى = نسي). Leave "verb" out of every other word, participles and nouns included (عايز, حب meaning love).
 
 LINES NOT IN ARABIC SCRIPT
 - Arabic written in English letters (for example "Tamally maak"): treat it as Arabic. Add "ar" with the whole line in Arabic script and use that spelling in words[].ar.
@@ -140,7 +141,7 @@ export function readResult(o, wanted) {
   const str = (v) => (typeof v === "string" ? v.trim() : "");
   const words = (Array.isArray(o.words) ? o.words : [])
     .filter((w) => w && typeof w === "object")
-    .map((w) => ({ ar: str(w.ar), rom: str(w.rom), en: str(w.en), note: str(w.note) }))
+    .map((w) => ({ ar: str(w.ar), rom: str(w.rom), en: str(w.en), note: str(w.note), ...(str(w.verb) && { verb: str(w.verb) }) }))
     .filter((w) => w.rom);
   return { n, ar: str(o.ar), rom: str(o.rom), en: str(o.en), words };
 }

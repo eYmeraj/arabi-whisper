@@ -105,6 +105,10 @@ test("readResult keeps only wanted, well-formed lines", () => {
     en: "my heart",
     words: [{ ar: "قلبي", rom: "albi", en: "my heart", note: "" }],
   });
+  assert.deepEqual(readResult({ n: 1, rom: "bahebbak", words: [{ ar: "بحبك", rom: "bahebbak", verb: " حب " }, { ar: "قلبي", rom: "albi", verb: "" }] }, wanted).words, [
+    { ar: "بحبك", rom: "bahebbak", en: "", note: "", verb: "حب" },
+    { ar: "قلبي", rom: "albi", en: "", note: "" },
+  ]);
   assert.equal(readResult({ n: 2, rom: "x" }, wanted), null);
   assert.equal(readResult({ n: 1, rom: "" }, wanted), null);
   assert.equal(readResult(null, wanted), null);
