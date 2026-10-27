@@ -102,6 +102,7 @@ function fakeSpotify(world, route) {
 // Gemini streams its answer for each line asked about.
 function fakeGemini(world, route) {
   world.geminiCalls++;
+  if (world.stuck.includes(JSON.parse(route.request().postData()).model)) return; // never answers, as when Gemini is overloaded
   const ns = [...JSON.parse(route.request().postData()).input.matchAll(/^(\d+)\|/gm)].map((m) => Number(m[1]));
   const text = ns.map((n) => JSON.stringify(world.answers[n])).join("\n");
   const events = [
@@ -161,6 +162,7 @@ export const test = base.extend({
       db: { songs: {}, flashcards: {} },
       answers: ANSWERS,
       geminiCalls: 0,
+      stuck: [], // Gemini models that take a request and never answer
       spotify: { idle: true, playing: false, list: [], i: 0, ms: 0, queue: [], devices: [{ id: "phone" }] },
       calls: [], // Spotify player requests but what's playing, as "METHOD /path?query"
       errors: [], // uncaught errors on any device
@@ -170,7 +172,7 @@ export const test = base.extend({
 
   device: async ({ browser, world }, use) => {
     const contexts = [];
-    await use(async ({ songs = [], cards = [], spotify = true, colorScheme = "light" } = {}) => {
+    await use(async ({ songs = [], cards = [], spotify = true, colorScheme = "light", clock = false } = {}) => {
       const context = await browser.newContext({ baseURL: "http://127.0.0.1:8000/", viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme });
       contexts.push(context);
       await context.route("https://api.spotify.com/**", (r) => fakeSpotify(world, r));
@@ -184,6 +186,7 @@ export const test = base.extend({
       await context.addInitScript(seed, { songs, cards, spotify, scope: SCOPE });
       const page = await context.newPage();
       page.on("pageerror", (e) => world.errors.push(e.message));
+      if (clock) await page.clock.install(); // the test moves time on with page.clock.runFor
       await page.goto("/");
       return page;
     });
