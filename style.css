@@ -616,6 +616,30 @@ body.live .line:not(.on) .rom {
   font-size: 0.9375rem;
 }
 
+/* a verb's tables, opened under its card */
+.card .c-verb {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+  border-bottom: 0;
+}
+
+.c-verb .gtable {
+  margin-bottom: 14px;
+}
+
+/* the same columns in every tense */
+.c-verb .gtable th {
+  width: 50%;
+}
+
+.c-verb .gtable td [lang="ar"] {
+  display: block;
+}
+
+.c-verb .credits {
+  margin: 0 0 4px;
+}
+
 /* ---- Flashcards ---- */
 
 .practice {
