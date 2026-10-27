@@ -3,6 +3,7 @@
 // optional sync database (worker/).
 import {
   hasArabic,
+  plainArabic,
   parseLyrics,
   numberLines,
   pickLyrics,
@@ -350,15 +351,28 @@ function openCard(li, i) {
       h("span", { class: "c-rom", text: bare(w.rom) || w.rom }),
       w.en && h("span", { class: "c-en", text: w.en }),
       w.note && h("span", { class: "c-note", text: w.note }),
-      w.verb && SYNC_URL && store.get("sync:token") && verbRow(w.verb),
+      w.verb && verbRow(w.verb),
       ar && state.song && flashButton(li, i), // not on the welcome screen's example
     ),
   );
   state.card = li;
 }
 
-// ---- Verb tables: from lisaanmasry.org, through the sync Worker, which looks each verb up once and keeps it ----
-const verbs = new Map(); // shortcut: kept for this visit only, so offline they show only once fetched; keep them in the store if that matters
+// ---- Verb tables: Wiktionary's (verbs.json, made by scripts/verbs.mjs), else lisaanmasry.org's through the sync
+// Worker, which looks each verb up once and keeps it ----
+const verbs = new Map(); // shortcut: lisaanmasry's are kept for this visit only, so offline only Wiktionary's show; keep them in the store if that matters
+let wiktionary = null;
+
+async function lookUpVerb(verb) {
+  wiktionary ||= fetch("verbs.json")
+    .then((res) => (res.ok ? res.json() : null))
+    .catch(() => (wiktionary = null)); // tried again next time
+  const found = (await wiktionary)?.verbs[plainArabic(verb)];
+  if (found) return { ...found, source: "Wiktionary" };
+  if (!SYNC_URL || !store.get("sync:token")) return { none: true };
+  const res = await syncFetch("/verbs/" + encodeURIComponent(verb)).catch(() => null);
+  return res?.ok ? res.json() : null;
+}
 
 // "Conjugation" under a verb's card: opened, it shows the verb's tables as lisaanmasry.org has them.
 function verbRow(verb) {
@@ -366,9 +380,9 @@ function verbRow(verb) {
   const load = async () => {
     if (!row.open || verbs.has(verb)) return;
     body.replaceChildren(h("p", { class: "c-note", text: "Looking it up…" }));
-    const res = await syncFetch("/verbs/" + encodeURIComponent(verb)).catch(() => null);
-    if (res?.ok) verbs.set(verb, await res.json());
-    body.replaceChildren(...verbTables(verbs.get(verb)));
+    const v = await lookUpVerb(verb);
+    if (v) verbs.set(verb, v);
+    body.replaceChildren(...verbTables(v));
   };
   const row = h("details", { ontoggle: load }, h("summary", { text: "Conjugation" }), body);
   if (verbs.has(verb)) body.replaceChildren(...verbTables(verbs.get(verb)));
@@ -377,7 +391,7 @@ function verbRow(verb) {
 
 function verbTables(v) {
   if (!v) return [h("p", { class: "c-note", text: "lisaanmasry.org isn't answering. Close and open this again later." })];
-  if (v.none) return [h("p", { class: "c-note", text: "This verb isn't in the lisaanmasry.org dictionary." })];
+  if (v.none) return [h("p", { class: "c-note", text: "No table for this verb in Wiktionary or lisaanmasry.org." })];
   return [
     h("p", { class: "c-verb-head" }, h("b", { text: v.rom }), " ", h("span", { lang: "ar", dir: "rtl", text: v.ar }), " · " + v.en),
     ...v.tenses.map((t) =>
@@ -388,7 +402,9 @@ function verbTables(v) {
         h("tbody", {}, t.rows.map((r) => h("tr", {}, h("th", { scope: "row", text: r.en }), h("td", {}, h("b", { text: r.rom }), h("span", { lang: "ar", dir: "rtl", text: r.ar }))))),
       ),
     ),
-    h("p", { class: "credits" }, "From ", h("a", { href: v.url, target: "_blank", rel: "noopener", text: "lisaanmasry.org" }), ", © 2007-2020 Mike Green, in its spelling: A is ع, H is ح, K is خ, G is غ."),
+    v.source === "Wiktionary"
+      ? h("p", { class: "credits" }, "From ", h("a", { href: v.url, target: "_blank", rel: "noopener", text: "Wiktionary" }), " (CC BY-SA), in the app's spelling.")
+      : h("p", { class: "credits" }, "From ", h("a", { href: v.url, target: "_blank", rel: "noopener", text: "lisaanmasry.org" }), ", © 2007-2020 Mike Green, in its spelling: A is ع, H is ح, K is خ, G is غ."),
   ];
 }
 

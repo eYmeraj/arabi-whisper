@@ -1,3 +1,5 @@
+import { plainArabic } from "../lib.js";
+
 // Arabi Whisper sync: keeps converted songs and flashcards in a D1 database, one row each, so all of the owner's
 // devices share them. Only requests carrying the owner's token (the SYNC_TOKEN secret) get in.
 const ORIGINS = ["https://eymeraj.github.io", "http://127.0.0.1:8000"];
@@ -12,8 +14,6 @@ const decode = (s) => s.replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/
 const text = (s) => decode(s.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
 // the site puts spaces and tatweels between letters and their vowel marks, to draw the marks apart
 const arabic = (s) => text(s).replace(/\u0640/g, "").replace(/\s+(?=\p{M})/gu, "");
-// for comparing spellings: no vowel marks, one alef, one ya
-const plain = (s) => s.replace(/[\s\u0640\p{M}]/gu, "").replace(/[\u0622\u0623\u0625]/g, "ا").replace(/ى/g, "ي");
 // stressed syllables are underlined mid-word (<u>'a</u>na), so tags here join letters instead of spacing words
 const pronounced = (cell) => text((cell.match(/<span class='pr'>(.*?)<\/span>/s)?.[1] ?? cell).replace(/<\/?[ui]>/g, ""));
 
@@ -62,7 +62,7 @@ async function verb(env, ar) {
     for (const id of ids.slice(0, 3)) {
       const url = LISAANMASRY + "verb.php?ui=en&id=" + id;
       const v = readVerbPage(await page("verb.php?ui=en&id=" + id));
-      if (v && plain(v.ar) === plain(ar)) {
+      if (v && plainArabic(v.ar) === plainArabic(ar)) {
         found = { key: ar, url, ...v };
         break;
       }

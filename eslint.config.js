@@ -7,5 +7,5 @@ export default [
   { rules: { "no-unused-vars": ["error", { ignoreRestSiblings: true }] } }, // ({ dropped, ...kept }) => kept
   { files: ["app.js", "lib.js"], languageOptions: { globals: globals.browser } },
   { files: ["sw.js", "worker/**"], languageOptions: { globals: globals.serviceworker } },
-  { files: ["**/*.test.js", "e2e/**", "*.config.js"], languageOptions: { globals: globals.node } },
+  { files: ["**/*.test.js", "e2e/**", "scripts/**", "*.config.js"], languageOptions: { globals: globals.node } },
 ];
