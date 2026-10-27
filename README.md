@@ -5,7 +5,7 @@ Read Egyptian Arabic songs the way they're sung. While a song plays on Spotify (
 - the Arabic, as written
 - how it sounds, in plain English letters (spelling guide under **Sounds**)
 - what it means in English
-- every word: tap it to see its meaning and a grammar note, and + to make it a flashcard
+- every word: tap it to see its meaning and a grammar note, and + to make it a flashcard. A verb also has its **Conjugation**: all its tenses, from [Wiktionary](https://en.wiktionary.org) (CC BY-SA 4.0) in the app's spelling, kept in `verbs.json`, so it opens at once and offline. For the verbs Wiktionary has no table for, it comes from the [lisaanmasry.org](https://www.lisaanmasry.org) Egyptian Arabic dictionary (© Mike Green, free for non-commercial use), as that site has them and in its own spelling, through the sync database below
 
 The **Grammar** tab has reference pages on possessive endings (albi, my heart), verbs, participles like 'aayiz (want) and pseudo-verbs like 'andi (I have), spelled the same way as the lyrics.
 
@@ -29,7 +29,7 @@ Live at **https://eymeraj.github.io/arabi-whisper/**. It's a static page: your G
 4. Copy the app's **Client ID** into `SPOTIFY_CLIENT_ID` at the top of `app.js`. The Client ID is public by design, so it is fine in the code.
 5. If Spotify refuses access after you log in, add your Spotify account's email under the app's **User Management**.
 
-**3. Sync database (optional, free).** Without it, each device converts a song once. With it, a song converted on any of your devices is ready on all of them, and costs one Gemini request in total, and your flashcards and their progress follow you too. It is a [Cloudflare Worker](https://developers.cloudflare.com/workers/) with a [D1](https://developers.cloudflare.com/d1/) database (tables `songs` and `flashcards`, one row each), both on Cloudflare's free plan. From the `worker` folder:
+**3. Sync database (optional, free).** Without it, each device converts a song once. With it, a song converted on any of your devices is ready on all of them, and costs one Gemini request in total, and your flashcards and their progress follow you too. It is a [Cloudflare Worker](https://developers.cloudflare.com/workers/) with a [D1](https://developers.cloudflare.com/d1/) database (tables `songs` and `flashcards`, one row each), both on Cloudflare's free plan. It also looks up a verb on lisaanmasry.org the first time you open its conjugation and keeps it (table `verbs`), so the dictionary's site sees one visit per verb. From the `worker` folder:
 
 ```sh
 npx wrangler login
@@ -65,4 +65,5 @@ The browser tests use the Chrome installed on the computer and spend no Gemini r
 - **Gemini models**: `MODELS` in `app.js`. Google retires models over time; if the page says a model is no longer offered, put a current Flash model there. Avoid Flash-Lite models: on the test songs they broke the spelling rules and mistranslated lines. Pro models have no free tier.
 - **Spelling rules**: the prompt in `lib.js` and the **Sounds** guide in `index.html` describe the same rules. Change both together.
 - **Redoing saved songs**: after a change to the models or the prompt that makes earlier results worth redoing, raise `CONVERSION` in `app.js`.
+- **Verb tables**: `node scripts/verbs.mjs` rebuilds `verbs.json` from Wiktionary (through [kaikki.org](https://kaikki.org)), to pick up verbs added there since. `verbs.json`, like Wiktionary, is under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 - **Logo**: `icon.svg` is the source. `apple-touch-icon.png` (the iPhone home screen icon) is the same image rendered at 180x180, so re-export it after changing the SVG.

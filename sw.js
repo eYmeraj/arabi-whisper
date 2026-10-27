@@ -2,7 +2,7 @@
 // converted live in the browser. The network answers first, so a new version shows on the next load; the copy answers
 // when the network fails, or is so slow (a weak signal) that the copy is better.
 const CACHE = "arabi-whisper";
-const FILES = ["./", "app.js", "lib.js", "style.css", "icon.svg", "apple-touch-icon.png"];
+const FILES = ["./", "app.js", "lib.js", "style.css", "verbs.json", "icon.svg", "apple-touch-icon.png"];
 const FONTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
 const SLOW_MS = 3000;
 let weakUntil = 0; // after the network was that slow, the copy answers at once for a while: not 3 s for every file
