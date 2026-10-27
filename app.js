@@ -99,6 +99,7 @@ const state = {
   song: null, // the song on screen
   trackKey: null, // the Spotify track last opened
   playback: null, // {key, playing, progress, at} from the last Spotify poll
+  noDevice: false, // nothing plays and Spotify lists no device to wake: Play opens the Spotify app instead
   lineEls: [], // <li> per lyric line of the song on screen
   active: -1, // index of the line being sung
   follow: true, // scroll along with the music
@@ -806,6 +807,7 @@ async function poll() {
     } else if (res.ok) {
       if (["poll", "login"].includes(state.notice?.from)) setNotice(null); // keep a playback message until it is dealt with
       onPlayback(res.status === 204 ? null : await res.json());
+      state.noDevice = res.status === 204 && !(await idleDevice()); // asked ahead, as Play must know at the tap (see control)
     }
   } catch {
     if (!store.get("spotify:tokens")) disconnected(); // otherwise probably offline: the next poll tries again
@@ -910,13 +912,20 @@ async function idleDevice() {
   return (usable.find((d) => d.is_active) || usable[0])?.id || null;
 }
 
-// Opens the song in the Spotify app (iOS asks first), which makes that phone a device again.
-const openSpotify = () => location.assign(state.playback?.key ? "spotify:track:" + state.playback.key : "spotify:");
+// Opens the Spotify app (iOS asks first), which makes that phone a device again: on `uri`, or else on the song it is
+// on or the one on screen, which it then plays unless something else is. For pasted lyrics, just the app.
+function openSpotify(uri) {
+  const key = state.playback?.key || state.song?.key;
+  location.assign(uri || (key && !key.startsWith("paste:") ? "spotify:track:" + key : "spotify:"));
+}
 
 // Sends one player command, with an optional JSON body. `then` updates the screen at once; a poll shortly after
 // confirms what Spotify did. True when Spotify took it.
 async function control(method, command, then, body) {
   if (needPermission()) return;
+  // Spotify isn't open anywhere, so play opens its app instead, still in the tap: iOS ignores a link into another app
+  // that waited for an answer. shortcut: a card's song starts at the top, not its line; use state.seekTo if missed.
+  if (command === "play" && !state.playback && state.noDevice) return openSpotify(body?.uris?.[0]);
   const url = "https://api.spotify.com/v1/me/player/" + command;
   const init = { method, ...(body && { body: JSON.stringify(body), headers: { "content-type": "application/json" } }) };
   try {
@@ -933,7 +942,7 @@ async function control(method, command, then, body) {
     } else if (res.status === 404 && !canWake()) {
       controlNotice("Spotify has gone idle. Connect Spotify once more, and the app can wake it on your phone or computer.", [["Connect", connectSpotify]]);
     } else if (res.status === 404) {
-      controlNotice("Spotify isn't open on any of your devices. Open it, then tap Play again.", [["Open Spotify", openSpotify]]);
+      controlNotice("Spotify isn't open on any of your devices.", [["Open Spotify", () => openSpotify(body?.uris?.[0])]]);
     } else if (res.status !== 429) {
       const reason = (await res.json().catch(() => null))?.error?.reason;
       const text = reason === "PREMIUM_REQUIRED" ? "Spotify only allows playback control with Premium." : "Spotify didn't take that command. Try it in the Spotify app.";

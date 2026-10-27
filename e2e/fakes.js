@@ -65,7 +65,8 @@ const track = (id) => ({
   album: { images: [] },
 });
 
-// What Spotify answers: `list` is what it is playing through (a playlist, say), `queue` what was queued.
+// What Spotify answers: `list` is what it is playing through (a playlist, say), `queue` what was queued, `devices` the
+// devices it lists, `idle` when none of them is active.
 function fakeSpotify(world, route) {
   const req = route.request();
   if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
@@ -78,6 +79,7 @@ function fakeSpotify(world, route) {
     return route.fulfill({ status: 200, headers: cors, body: JSON.stringify({ currently_playing_type: "track", is_playing: sp.playing, progress_ms: sp.ms, item: track(sp.list[sp.i]) }) });
   }
   world.calls.push(req.method() + " " + path + url.search);
+  if (path === "/devices") return route.fulfill({ status: 200, headers: cors, body: JSON.stringify({ devices: sp.devices }) });
   if (path === "/queue") return sp.queue.push(url.searchParams.get("uri").split(":").pop()), ok();
   if (path === "/next") {
     if (sp.queue.length) sp.list.splice(sp.i + 1, 0, sp.queue.shift());
@@ -88,9 +90,10 @@ function fakeSpotify(world, route) {
   }
   if (path === "/seek") return (sp.ms = Number(url.searchParams.get("position_ms"))), ok();
   if (path === "/play") {
+    if (sp.idle && !url.searchParams.has("device_id")) return route.fulfill({ status: 404, headers: cors }); // no active device
     const body = req.postData() ? JSON.parse(req.postData()) : {};
-    if (body.uris) Object.assign(sp, { idle: false, list: body.uris.map((u) => u.split(":").pop()), i: 0, ms: body.position_ms || 0 });
-    sp.playing = true;
+    if (body.uris) Object.assign(sp, { list: body.uris.map((u) => u.split(":").pop()), i: 0, ms: body.position_ms || 0 });
+    Object.assign(sp, { idle: false, playing: true });
     return ok();
   }
   return route.fulfill({ status: 404, headers: cors });
@@ -144,8 +147,8 @@ export const test = base.extend({
       db: { songs: {}, flashcards: {} },
       answers: ANSWERS,
       geminiCalls: 0,
-      spotify: { idle: true, playing: false, list: [], i: 0, ms: 0, queue: [] },
-      calls: [], // Spotify player commands, as "METHOD /path?query"
+      spotify: { idle: true, playing: false, list: [], i: 0, ms: 0, queue: [], devices: [{ id: "phone" }] },
+      calls: [], // Spotify player requests but what's playing, as "METHOD /path?query"
       errors: [], // uncaught errors on any device
       offline: false, // every device: no service answers (set it with goOffline)
     });
@@ -179,6 +182,16 @@ export const test = base.extend({
 export async function goOffline(page, world, offline = true) {
   world.offline = offline;
   await page.context().setOffline(offline);
+}
+
+/** The links into other apps ("spotify:…") that `page` opens from now on. Chrome asks before opening an app, unseen
+ * in tests, so none opens. */
+export async function appLinks(page) {
+  const links = [];
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Page.enable");
+  cdp.on("Page.frameRequestedNavigation", (e) => !e.url.startsWith("http") && links.push(e.url));
+  return links;
 }
 
 /** This device's saved flashcards, by key. */
