@@ -1132,11 +1132,34 @@ class GeminiError extends Error {
   }
 }
 
+// Gemini sends its first line within about 10 s and the rest in a steady stream; when overloaded it can take the
+// request and go quiet for good. This long without a word, the request is given up on, as one cut off.
+const GEMINI_QUIET_MS = 45000;
+
 async function askGemini(model, key, system, input, onObject) {
+  const quiet = new AbortController();
+  let timer;
+  const heard = () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => quiet.abort(), GEMINI_QUIET_MS);
+  };
+  heard();
+  try {
+    await streamGemini(model, key, system, input, onObject, quiet.signal, heard);
+  } catch (e) {
+    if (quiet.signal.aborted) throw new GeminiError(0, "no answer", "Gemini stopped answering.", model);
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function streamGemini(model, key, system, input, onObject, signal, heard) {
   const res = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions?alt=sse", {
     method: "POST",
     headers: { "content-type": "application/json", "x-goog-api-key": key },
     body: JSON.stringify({ model, system_instruction: system, input, generation_config: { thinking_level: "low" }, stream: true, store: false }),
+    signal,
   });
   if (!res.ok) {
     const body = await res.json().catch(() => null);
@@ -1150,6 +1173,7 @@ async function askGemini(model, key, system, input, onObject) {
   for (;;) {
     const { value, done } = await reader.read();
     if (done) break;
+    heard();
     stream.push(value);
   }
   const status = stream.end();
