@@ -620,6 +620,10 @@ body.live .line:not(.on) .rom {
 .card .c-verb {
   grid-column: 1 / -1;
   margin-top: 8px;
+}
+
+/* the card's own line below is enough */
+.c-verb.more {
   border-bottom: 0;
 }
 
