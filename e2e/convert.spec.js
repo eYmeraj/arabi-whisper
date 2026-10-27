@@ -16,3 +16,12 @@ test("a song from an older conversion is redone once for all devices, and its fl
   await expect.poll(async () => (await savedCards(b))["ليه"].rom).toBe("leih");
   expect(world.geminiCalls).toBe(1);
 });
+
+test("a Gemini model that stops answering is given up on, and the next one converts the song", async ({ device, world }) => {
+  world.stuck = ["gemini-3.8-flash"];
+  const page = await device({ songs: [song({ answers: OLD_ANSWERS, v: null })], clock: true });
+  await expect(page.locator(".rom").first()).toContainText("leeh"); // the old conversion, while the new one runs
+  await page.clock.runFor(90_000);
+  await expect(page.locator(".rom").first()).toContainText("leih");
+  expect(world.geminiCalls).toBe(2);
+});
