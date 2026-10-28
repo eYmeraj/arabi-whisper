@@ -25,3 +25,19 @@ test("a Gemini model that stops answering is given up on, and the next one conve
   await expect(page.locator(".rom").first()).toContainText("leih");
   expect(world.geminiCalls).toBe(2);
 });
+
+test("lyrics with no Arabic script aren't sent to Gemini unless asked, for Arabic written in English letters", async ({ device, world }) => {
+  const lines = [{ t: 0, text: "Walking home in the rain", n: 1 }, { t: 4000, text: "Nobody waiting for me", n: 2 }];
+  const english = { ...song(), lines, unique: lines.map(({ n, text }) => ({ n, text })), conv: {} };
+  world.answers = { 1: { n: 1, rom: lines[0].text, en: lines[0].text, words: [] }, 2: { n: 2, rom: lines[1].text, en: lines[1].text, words: [] } };
+  const page = await device({ songs: [english] });
+  await expect(page.getByText("These lyrics aren't in Arabic script.")).toBeVisible();
+  expect(world.geminiCalls).toBe(0);
+
+  await page.getByRole("button", { name: "Convert anyway" }).click();
+  await expect(page.getByText("These lyrics aren't in Arabic script.")).toBeHidden();
+  expect(world.geminiCalls).toBe(1);
+  await page.reload();
+  await expect(page.locator(".rom").first()).toHaveText("Walking home in the rain");
+  expect(world.geminiCalls).toBe(1); // converted once, kept
+});

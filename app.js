@@ -214,6 +214,14 @@ function songNotice(song) {
   const total = song.unique?.length || 0;
   const done = fresh(song);
   if (!total || done === total) return null;
+  if (notArabic(song)) {
+    const convertAnyway = () => {
+      song.convertAnyway = true;
+      saveSong(song);
+      convert(song);
+    };
+    return { text: "These lyrics aren't in Arabic script.", actions: [["Convert anyway", convertAnyway]] };
+  }
   if (song.waiting === "db") return { wait: "db", text: "Checking your saved songs…" };
   if (song.converting) return { wait: song.waiting, text: `Writing the pronunciation… ${done} of ${total} ${total === 1 ? "line" : "lines"}` };
   if (song.error) return { warn: true, text: song.error, actions: [["Try again", () => convert(song)]] };
@@ -1234,9 +1242,13 @@ async function push(song) {
 
 // Converts the lines of `song` that have no pronunciation yet, or one from an older CONVERSION, after checking the
 // database for them. Results stream in line by line and are saved as they come.
+// Lyrics found with no Arabic script are mostly songs in other languages: Gemini isn't asked until "Convert anyway"
+// says they are Arabic in English letters. Pasted lyrics are always converted.
+const notArabic = (song) => song.source === "lrclib" && !song.convertAnyway && !(song.unique || []).some((u) => hasArabic(u.text));
+
 async function convert(song) {
   const missing = () => (song.unique || []).filter((u) => song.conv[u.n]?.v !== CONVERSION);
-  if (!missing().length || song.converting) {
+  if (!missing().length || song.converting || notArabic(song)) {
     if (state.song === song) renderNotice();
     if (!song.converting && !song.uploaded && song.unique?.length) push(song); // converted, but not in the database yet
     return;
