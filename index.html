@@ -46,16 +46,56 @@
 <!-- Spelled by the same rules as the lyrics (the prompt in lib.js) and the Sounds key below. <em> marks the part of
      a word that changes. Checked against the Egyptian Arabic grammar on Wikipedia, Wiktionary and lisaanmasry.org. -->
 <main id="grammar" class="page" role="tabpanel" aria-labelledby="tabGrammar" hidden>
-  <ul id="topics" class="topics">
+  <div id="topics">
+  <h2 class="eyebrow topic-group" id="group0">Basics</h2>
+  <ul class="topics" aria-labelledby="group0">
+    <li><button type="button" data-topic="sounds">
+      <span class="t-name">Sounds and letters</span>
+      <span class="t-sub">How Cairo says the letters</span>
+      <span class="t-ex">'ahwa · gameel · dahab</span>
+    </button></li>
+    <li><button type="button" data-topic="nouns">
+      <span class="t-name">Nouns</span>
+      <span class="t-sub">Gender, plurals, the</span>
+      <span class="t-ex">el-beit · banaat · santeen</span>
+    </button></li>
+    <li><button type="button" data-topic="adjectives">
+      <span class="t-name">Adjectives</span>
+      <span class="t-sub">Big, bigger, the biggest</span>
+      <span class="t-ex">kibeer · akbar · helw awi</span>
+    </button></li>
+    <li><button type="button" data-topic="pronouns">
+      <span class="t-name">Pronouns</span>
+      <span class="t-sub">I, me, to me</span>
+      <span class="t-ex">ana · shafni · ba'atli</span>
+    </button></li>
     <li><button type="button" data-topic="possessives">
       <span class="t-name">Possessives</span>
       <span class="t-sub">My, your, his</span>
       <span class="t-ex">albi · 'omrak · habibti</span>
     </button></li>
+    <li><button type="button" data-topic="determiners">
+      <span class="t-name">Determiners</span>
+      <span class="t-sub">This, that, every</span>
+      <span class="t-ex">da · di · kull</span>
+    </button></li>
+    <li><button type="button" data-topic="roots">
+      <span class="t-name">Roots and patterns</span>
+      <span class="t-sub">Words from three letters</span>
+      <span class="t-ex">katab · kitaab · maktab</span>
+    </button></li>
+  </ul>
+  <h2 class="eyebrow topic-group" id="group1">Verbs</h2>
+  <ul class="topics" aria-labelledby="group1">
     <li><button type="button" data-topic="verbs">
       <span class="t-name">Verbs</span>
       <span class="t-sub">Past, now, will, commands and not</span>
       <span class="t-ex">katab · beyektib · haktib</span>
+    </button></li>
+    <li><button type="button" data-topic="irregular-verbs">
+      <span class="t-name">Irregular verbs</span>
+      <span class="t-sub">Be, eat, take, come, give</span>
+      <span class="t-ex">kaan · kal · ga</span>
     </button></li>
     <li><button type="button" data-topic="participles">
       <span class="t-name">Participles</span>
@@ -67,8 +107,70 @@
       <span class="t-sub">Have, I'd love to, must</span>
       <span class="t-ex">'andi · nifsi · laazim</span>
     </button></li>
+    <li><button type="button" data-topic="negation">
+      <span class="t-name">Negation</span>
+      <span class="t-sub">Not, never, nothing</span>
+      <span class="t-ex">ma-…-sh · mish · ma-feesh</span>
+    </button></li>
+    <li><button type="button" data-topic="imperatives">
+      <span class="t-name">Imperatives</span>
+      <span class="t-sub">Commands and requests</span>
+      <span class="t-ex">law samaht · yalla · laazim</span>
+    </button></li>
   </ul>
-  <p class="credits">Checked against the grammar on <a href="https://www.lisaanmasry.org/grammar/introduction.html">lisaanmasry.org</a>, which goes further, with recordings.</p>
+  <h2 class="eyebrow topic-group" id="group2">Sentences</h2>
+  <ul class="topics" aria-labelledby="group2">
+    <li><button type="button" data-topic="questions">
+      <span class="t-name">Questions</span>
+      <span class="t-sub">What, where, why, how</span>
+      <span class="t-ex">eih · feen · ezzay</span>
+    </button></li>
+    <li><button type="button" data-topic="prepositions">
+      <span class="t-name">Prepositions</span>
+      <span class="t-sub">In, on, from, with</span>
+      <span class="t-ex">fi · 'ala · ma'a</span>
+    </button></li>
+    <li><button type="button" data-topic="conjunctions">
+      <span class="t-name">Conjunctions</span>
+      <span class="t-sub">And, but, because, if</span>
+      <span class="t-ex">we- · bass · law</span>
+    </button></li>
+    <li><button type="button" data-topic="relative-clauses">
+      <span class="t-name">Relative clauses</span>
+      <span class="t-sub">Who, which, that</span>
+      <span class="t-ex">elli</span>
+    </button></li>
+    <li><button type="button" data-topic="adverbs">
+      <span class="t-name">Adverbs</span>
+      <span class="t-sub">Now, here, very</span>
+      <span class="t-ex">delwa'ti · hina · awi</span>
+    </button></li>
+  </ul>
+  <h2 class="eyebrow topic-group" id="group3">Everyday</h2>
+  <ul class="topics" aria-labelledby="group3">
+    <li><button type="button" data-topic="numbers">
+      <span class="t-name">Numbers</span>
+      <span class="t-sub">Counting and prices</span>
+      <span class="t-ex">waahid · talat kutub · be-kaam</span>
+    </button></li>
+    <li><button type="button" data-topic="time">
+      <span class="t-name">Time and dates</span>
+      <span class="t-sub">The time, days, months</span>
+      <span class="t-ex">es-sa'a kaam · eg-gom'a</span>
+    </button></li>
+    <li><button type="button" data-topic="quantities">
+      <span class="t-name">Quantities</span>
+      <span class="t-sub">A lot, a little, enough</span>
+      <span class="t-ex">kiteer · shwayya · kefaaya</span>
+    </button></li>
+    <li><button type="button" data-topic="courtesies">
+      <span class="t-name">Courtesies</span>
+      <span class="t-sub">Greetings and set phrases</span>
+      <span class="t-ex">sabaah el-kheir · ma'lesh</span>
+    </button></li>
+  </ul>
+  <p class="credits">Checked against the grammar on <a href="https://www.lisaanmasry.org/grammar/introduction.html">lisaanmasry.org</a>, which has recordings of its examples.</p>
+  </div>
 
   <section id="possessives" class="topic" aria-labelledby="possessivesTitle" hidden>
     <div class="topic-head">
@@ -152,6 +254,7 @@
         <p><b>'ayzak ma'aaya 'ala tool ya habeebi</b>, I want you with me always, my love, has three: 'ayz<em>ak</em>, you; ma'aa<em>ya</em>, me; habeeb<em>i</em>, my.</p>
       </details>
     </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/ownership.html">lisaanmasry.org</a></p>
   </section>
 
   <section id="verbs" class="topic" aria-labelledby="verbsTitle" hidden>
@@ -301,6 +404,7 @@
         <p>kaan is also how 'aayiz gets a past: <b>kunt 'aayiz</b>, I wanted.</p>
       </details>
     </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/verbs.html">lisaanmasry.org</a></p>
   </section>
 
   <section id="participles" class="topic" aria-labelledby="participlesTitle" hidden>
@@ -458,6 +562,7 @@
         </ol>
       </details>
     </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/verbs.html">lisaanmasry.org</a></p>
   </section>
 
   <section id="pseudo-verbs" class="topic" aria-labelledby="pseudoVerbsTitle" hidden>
@@ -505,7 +610,831 @@
       </tbody>
     </table>
     <p>These two never change: the verb after them says who.</p>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/ownership.html">lisaanmasry.org</a></p>
   </section>
+  <section id="sounds" class="topic" aria-labelledby="soundsTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="soundsTitle" tabindex="-1">Sounds and letters</h1>
+    </div>
+    <p>Egyptian is spoken Cairo Arabic, and a few letters sound different from the Arabic taught in schools. Knowing them helps you connect what you hear with what is written.</p>
+    <table class="gtable">
+      <caption>Letters that change in Cairo</caption>
+      <thead>
+        <tr><th scope="col">Letter</th><th scope="col">Sound</th><th scope="col">Examples</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">ق</th><td>a catch in the throat, written '</td><td><span class="ex"><b>'ahwa</b> coffee</span><span class="ex"><b>'alb</b> heart</span></td></tr>
+        <tr><th scope="row">ج</th><td>g, as in go</td><td><span class="ex"><b>gameel</b> beautiful</span><span class="ex"><b>gawaab</b> letter</span></td></tr>
+        <tr><th scope="row">ث</th><td>t, or s in learned words</td><td><span class="ex"><b>talaata</b> three</span><span class="ex"><b>sawra</b> revolution</span></td></tr>
+        <tr><th scope="row">ذ</th><td>d, or z in learned words</td><td><span class="ex"><b>dahab</b> gold</span><span class="ex"><b>lazeez</b> delicious</span></td></tr>
+        <tr><th scope="row">ظ</th><td>a heavy z or d</td><td><span class="ex"><b>zarf</b> envelope</span><span class="ex"><b>dohr</b> noon</span></td></tr>
+      </tbody>
+    </table>
+    <p class="gnote">The full key to the app's spelling is under <b>Sounds</b> at the top of the page.</p>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>Sounds English doesn't have</summary>
+    <p><b>'</b> for ع is a squeeze deep in the throat: <b>'arabi</b>, Arabic. <b>h</b> for ح is a breathy h from the throat: <b>hamaam</b>, pigeon (and <b>hammaam</b>, bathroom). <b>kh</b> for خ is the ch of Scottish loch: <b>khubz</b>, bread. <b>gh</b> for غ is a gargled r: <b>ghaali</b>, expensive.</p>
+      </details>
+      <details>
+        <summary>Heavy letters</summary>
+    <p>ص ض ط ظ are s, d, t and z said with the tongue pulled back. They darken the vowels around them: <b>seif</b> (sword, with س) and <b>seif</b> (summer, with ص) differ only in that. The app writes both as s; the Arabic shows which.</p>
+      </details>
+      <details>
+        <summary>What the script leaves out</summary>
+    <p>Written Arabic shows the consonants and long vowels, but not the short vowels: كتب can be katab (he wrote) or kutub (books). The Arabic tells you the word; the app's spelling tells you how it sounds.</p><p>Letters join to the next one, so most have a joined and a final shape. At a word's end, ة is the -a of feminine words (<b>madrasa</b> مدرسة) and ى is an -a sound (<b>ma'na</b> معنى, meaning).</p>
+      </details>
+    </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/pronunciation.html">lisaanmasry.org</a></p>
+  </section>
+  <section id="nouns" class="topic" aria-labelledby="nounsTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="nounsTitle" tabindex="-1">Nouns</h1>
+    </div>
+    <p>Every noun is masculine or feminine, and most feminine ones end in -a. There is no word for <i>a</i>: <b>beit</b> is a house, <b>el-beit</b> the house.</p>
+    <table class="gtable">
+      <caption>Masculine or feminine</caption>
+      <tbody>
+        <tr><th scope="row">masculine</th><td><span class="pair"><b>beit</b> <span lang="ar" dir="rtl">بيت</span></span> house</td><td><span class="pair"><b>kitaab</b> <span lang="ar" dir="rtl">كتاب</span></span> book</td></tr>
+        <tr><th scope="row">feminine, -a</th><td><span class="pair"><b>oda</b> <span lang="ar" dir="rtl">أوضة</span></span> room</td><td><span class="pair"><b>madrasa</b> <span lang="ar" dir="rtl">مدرسة</span></span> school</td></tr>
+        <tr><th scope="row">feminine, no -a</th><td><span class="pair"><b>omm</b> <span lang="ar" dir="rtl">أم</span></span> mother</td><td><span class="pair"><b>shams</b> <span lang="ar" dir="rtl">شمس</span></span> sun</td></tr>
+      </tbody>
+    </table>
+    <p>Countries and cities are feminine: <b>Masr gameela</b>, Egypt is beautiful.</p>
+    <table class="gtable">
+      <caption>el-: the</caption>
+      <thead>
+        <tr><th scope="col">Before</th><th scope="col">Sounds like</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">most words</th><td><span class="ex"><b>el-beit</b> the house</span><span class="ex"><b>el-kitaab</b> the book</span></td></tr>
+        <tr><th scope="row">t d s z sh r n l g, and heavy letters</th><td>el- takes on the sound: <span class="ex"><b>esh-shams</b> the sun</span><span class="ex"><b>er-raagil</b> the man</span><span class="ex"><b>eg-gaar</b> the neighbour</span></td></tr>
+      </tbody>
+    </table>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>Plurals</summary>
+    <p>Words for people often add -een (men, or mixed) or -aat (women): <b>mudarris</b>, teacher, <b>mudarriseen</b>; <b>mudarrisa</b>, <b>mudarrisaat</b>. Many feminine things take -aat: <b>'arabiyya</b>, car, <b>'arabiyyaat</b>.</p><table class="gtable">
+      <thead>
+        <tr><th scope="col">One</th><th scope="col">Many</th><th scope="col"></th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row"><span class="pair"><b>beit</b> <span lang="ar" dir="rtl">بيت</span></span></th><td><span class="pair"><b>buyoot</b> <span lang="ar" dir="rtl">بيوت</span></span></td><td>houses</td></tr>
+        <tr><th scope="row"><span class="pair"><b>kitaab</b> <span lang="ar" dir="rtl">كتاب</span></span></th><td><span class="pair"><b>kutub</b> <span lang="ar" dir="rtl">كتب</span></span></td><td>books</td></tr>
+        <tr><th scope="row"><span class="pair"><b>walad</b> <span lang="ar" dir="rtl">ولد</span></span></th><td><span class="pair"><b>wilaad</b> <span lang="ar" dir="rtl">ولاد</span></span></td><td>boys, children</td></tr>
+        <tr><th scope="row"><span class="pair"><b>bent</b> <span lang="ar" dir="rtl">بنت</span></span></th><td><span class="pair"><b>banaat</b> <span lang="ar" dir="rtl">بنات</span></span></td><td>girls</td></tr>
+        <tr><th scope="row"><span class="pair"><b>shaari'</b> <span lang="ar" dir="rtl">شارع</span></span></th><td><span class="pair"><b>shawaari'</b> <span lang="ar" dir="rtl">شوارع</span></span></td><td>streets</td></tr>
+      </tbody>
+    </table><p>Most other plurals change the vowels inside the word, like English man and men. They are best learned with the word.</p>
+      </details>
+      <details>
+        <summary>Two of something: -een</summary>
+    <p>Add -een for exactly two: <b>beiteen</b>, two houses; <b>yomeen</b>, two days. A word ending in -a takes -teen: <b>sana</b>, year, <b>santeen</b>; <b>sa'a</b>, hour, <b>sa'teen</b>. No word for two is needed.</p>
+      </details>
+      <details>
+        <summary>One of a kind: -a</summary>
+    <p>Food that comes in bulk has a word for the lot and adds -a for one piece: <b>burtu'aan</b>, oranges, <b>burtu'aana</b>, an orange; <b>samak</b>, fish, <b>samaka</b>, a fish; <b>ward</b>, flowers, <b>warda</b>, a flower.</p>
+      </details>
+      <details>
+        <summary>Women's words from men's</summary>
+    <p>Jobs and people add -a for a woman: <b>doktoor</b>, <b>doktoora</b>; <b>tabbaakh</b>, cook, <b>tabbaakha</b>; <b>gaar</b>, neighbour, <b>gaara</b>.</p>
+      </details>
+    </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/nouns.html">lisaanmasry.org</a></p>
+  </section>
+  <section id="adjectives" class="topic" aria-labelledby="adjectivesTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="adjectivesTitle" tabindex="-1">Adjectives</h1>
+    </div>
+    <p>The adjective comes after the noun and matches it: a man, a woman or a group. There is no word for <i>is</i>.</p>
+    <table class="gtable">
+      <caption>kibeer · big</caption>
+      <thead>
+        <tr><th scope="col">For</th><th scope="col">Form</th><th scope="col">Example</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">a man, a thing</th><td><span class="pair"><b>kibeer</b> <span lang="ar" dir="rtl">كبير</span></span></td><td><span class="ex"><b>beit kibeer</b> a big house</span></td></tr>
+        <tr><th scope="row">a woman, a thing</th><td><span class="pair"><b>kibeera</b> <span lang="ar" dir="rtl">كبيرة</span></span></td><td><span class="ex"><b>oda kibeera</b> a big room</span></td></tr>
+        <tr><th scope="row">people</th><td><span class="pair"><b>kubaar</b> <span lang="ar" dir="rtl">كبار</span></span></td><td><span class="ex"><b>naas kubaar</b> grown-ups</span></td></tr>
+      </tbody>
+    </table>
+    <table class="gtable">
+      <caption>With el-, or without</caption>
+      <tbody>
+        <tr><th scope="row">on both</th><td>the thing: <span class="ex"><b>el-beit el-kibeer</b> the big house</span></td></tr>
+        <tr><th scope="row">on the noun only</th><td>a sentence: <span class="ex"><b>el-beit kibeer</b> the house is big</span></td></tr>
+      </tbody>
+    </table>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>Common adjectives</summary>
+    <table class="gtable">
+      <thead>
+        <tr><th scope="col"></th><th scope="col">man</th><th scope="col">woman</th><th scope="col">group</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">good</th><td>kwayyis</td><td>kwayyisa</td><td>kwayyiseen</td></tr>
+        <tr><th scope="row">new</th><td>gedeed</td><td>gedeeda</td><td>godaad</td></tr>
+        <tr><th scope="row">small</th><td>sughayyar</td><td>sughayyara</td><td>sughayyareen</td></tr>
+        <tr><th scope="row">nice, sweet</th><td>helw</td><td>helwa</td><td>helween</td></tr>
+        <tr><th scope="row">tired</th><td>ta'baan</td><td>ta'baana</td><td>ta'baneen</td></tr>
+        <tr><th scope="row">hungry</th><td>ga'aan</td><td>ga'aana</td><td>ga'aneen</td></tr>
+      </tbody>
+    </table><p>Many take -een for a group, as -een is the plural ending for people; others have their own plural, like kubaar.</p>
+      </details>
+      <details>
+        <summary>Many things: like one woman</summary>
+    <p>A plural of things, not people, usually takes the feminine form: <b>el-kutub di gedeeda</b>, these books are new; <b>el-'arabiyyaat ghalya</b>, cars are expensive.</p>
+      </details>
+      <details>
+        <summary>Bigger, biggest</summary>
+    <p>Comparing has one form for everyone, on the pattern a_ _a_: <b>kibeer</b>, <b>akbar</b>; <b>sughayyar</b>, <b>asghar</b>; <b>helw</b>, <b>ahla</b>; <b>kwayyis</b>, <b>ahsan</b> (better); <b>kiteer</b>, <b>aktar</b> (more). Than is <b>min</b>: <b>Masr akbar min Lubnaan</b>, Egypt is bigger than Lebanon.</p><p>Before a noun it means the most: <b>akbar beit</b>, the biggest house; <b>ahsan haaga</b>, the best thing.</p>
+      </details>
+      <details>
+        <summary>Colours</summary>
+    <table class="gtable">
+      <thead>
+        <tr><th scope="col"></th><th scope="col">man, thing</th><th scope="col">woman, thing</th><th scope="col">plural</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">red</th><td>ahmar</td><td>hamra</td><td>humr</td></tr>
+        <tr><th scope="row">white</th><td>abyad</td><td>beida</td><td>beed</td></tr>
+        <tr><th scope="row">black</th><td>eswed</td><td>sooda</td><td>sood</td></tr>
+        <tr><th scope="row">green</th><td>akhdar</td><td>khadra</td><td>khodr</td></tr>
+        <tr><th scope="row">blue</th><td>azra'</td><td>zar'a</td><td>zor'</td></tr>
+      </tbody>
+    </table>
+      </details>
+      <details>
+        <summary>Very: awi</summary>
+    <p><b>awi</b> goes after the adjective: <b>helw awi</b>, very nice; <b>ghaali awi</b>, very expensive.</p>
+      </details>
+    </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/adjectives.html">lisaanmasry.org</a></p>
+  </section>
+  <section id="pronouns" class="topic" aria-labelledby="pronounsTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="pronounsTitle" tabindex="-1">Pronouns</h1>
+    </div>
+    <p>I, me, to me. The pronoun for who does something is a word of its own; who it's done to goes on the end of the verb.</p>
+    <table class="gtable">
+      <caption>Who does it</caption>
+      <tbody>
+        <tr><th scope="row">I</th><td><span class="pair"><b>ana</b> <span lang="ar" dir="rtl">أنا</span></span></td><td>we</td><td><span class="pair"><b>ehna</b> <span lang="ar" dir="rtl">إحنا</span></span></td></tr>
+        <tr><th scope="row">you m.</th><td><span class="pair"><b>enta</b> <span lang="ar" dir="rtl">إنت</span></span></td><td>you pl.</td><td><span class="pair"><b>entu</b> <span lang="ar" dir="rtl">إنتو</span></span></td></tr>
+        <tr><th scope="row">you f.</th><td><span class="pair"><b>enti</b> <span lang="ar" dir="rtl">إنتي</span></span></td><td>they</td><td><span class="pair"><b>humma</b> <span lang="ar" dir="rtl">هما</span></span></td></tr>
+        <tr><th scope="row">he, it</th><td><span class="pair"><b>huwwa</b> <span lang="ar" dir="rtl">هو</span></span></td><td>she, it</td><td><span class="pair"><b>hiyya</b> <span lang="ar" dir="rtl">هي</span></span></td></tr>
+      </tbody>
+    </table>
+    <p>There is no <i>it</i>: a thing is huwwa or hiyya, after its gender. <b>feen el-'arabiyya? hiyya barra</b>, where's the car? It's outside.</p>
+    <table class="gtable">
+      <caption>Who it's done to: sa'ad, he helped</caption>
+      <tbody>
+        <tr><th scope="row">me</th><td>sa'ad<em>ni</em></td><td>us</td><td>sa'ad<em>na</em></td></tr>
+        <tr><th scope="row">you m.</th><td>sa'ad<em>ak</em></td><td>you pl.</td><td>sa'ad<em>ku</em></td></tr>
+        <tr><th scope="row">you f.</th><td>sa'ad<em>ik</em></td><td>them</td><td>sa'ad<em>-hum</em></td></tr>
+        <tr><th scope="row">him</th><td>sa'ad<em>u</em></td><td>her</td><td>sa'ad<em>-ha</em></td></tr>
+      </tbody>
+    </table>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>To me, for you: -li, -lak</summary>
+    <p>Some verbs take who it's for as an ending too: <b>ba'at</b>, he sent.</p><table class="gtable">
+      <tbody>
+        <tr><th scope="row">to me</th><td>ba'at<em>li</em></td><td>to us</td><td>ba'at<em>lina</em></td></tr>
+        <tr><th scope="row">to you m.</th><td>ba'at<em>lak</em></td><td>to you pl.</td><td>ba'at<em>luku</em></td></tr>
+        <tr><th scope="row">to you f.</th><td>ba'at<em>lik</em></td><td>to them</td><td>ba'at<em>luhum</em></td></tr>
+        <tr><th scope="row">to him</th><td>ba'at<em>lu</em></td><td>to her</td><td>ba'at<em>laha</em></td></tr>
+      </tbody>
+    </table><p><b>eb'atli el-'enwaan</b>, send me the address; <b>ha'ollak</b>, I'll tell you; <b>ektibli</b>, write to me.</p>
+      </details>
+      <details>
+        <summary>The ending changes the stress</summary>
+    <p>With an ending, the stress moves toward it, and a long vowel just before two consonants gets short: <b>shaaf</b>, he saw, <b>shaafu</b>, he saw him, but <b>shafha</b>, he saw her.</p>
+      </details>
+      <details>
+        <summary>Myself: nafs</summary>
+    <p><b>nafs</b> with a possessive ending: <b>nafsi</b>, myself; <b>nafsak</b>, yourself. <b>'amaltu be-nafsi</b>, I made it myself. (Not to be confused with <b>nifsi</b>, I'd love to.)</p>
+      </details>
+    </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/pronouns.html">lisaanmasry.org</a></p>
+  </section>
+  <section id="determiners" class="topic" aria-labelledby="determinersTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="determinersTitle" tabindex="-1">Determiners</h1>
+    </div>
+    <p>This, that, every, some. <b>da</b>, <b>di</b> and <b>dool</b> mean both this and that, and go after the noun, which takes el-.</p>
+    <table class="gtable">
+      <caption>This, that</caption>
+      <thead>
+        <tr><th scope="col">For</th><th scope="col">Form</th><th scope="col">Example</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">a man, a thing</th><td><span class="pair"><b>da</b> <span lang="ar" dir="rtl">ده</span></span></td><td><span class="ex"><b>el-beit da</b> this house</span></td></tr>
+        <tr><th scope="row">a woman, a thing</th><td><span class="pair"><b>di</b> <span lang="ar" dir="rtl">دي</span></span></td><td><span class="ex"><b>el-oda di</b> this room</span></td></tr>
+        <tr><th scope="row">plural</th><td><span class="pair"><b>dool</b> <span lang="ar" dir="rtl">دول</span></span></td><td><span class="ex"><b>en-naas dol</b> these people</span></td></tr>
+      </tbody>
+    </table>
+    <p>On their own they make a sentence: <b>da beiti</b>, this is my house; <b>eih da?</b>, what's this?</p>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>Every, all: kull</summary>
+    <p>Before a noun without el-, every: <b>kull yom</b>, every day. Before el-, all of it: <b>kull el-beit</b>, the whole house. With an ending, all of them: <b>kulluhum</b>, all of them; <b>kullena</b>, all of us.</p>
+      </details>
+      <details>
+        <summary>Some, any, other, same</summary>
+    <table class="gtable">
+      <tbody>
+        <tr><th scope="row">some, a little</th><td><span class="ex"><b>shwayyit mayya</b> some water</span></td></tr>
+        <tr><th scope="row">any</th><td><span class="ex"><b>ay haaga</b> anything</span></td></tr>
+        <tr><th scope="row">another, other</th><td><span class="ex"><b>haaga tanya</b> something else</span><span class="ex"><b>marra tanya</b> another time</span></td></tr>
+        <tr><th scope="row">the same</th><td><span class="ex"><b>nafs el-haaga</b> the same thing</span></td></tr>
+        <tr><th scope="row">several</th><td><span class="ex"><b>kaza marra</b> several times</span></td></tr>
+      </tbody>
+    </table>
+      </details>
+      <details>
+        <summary>Over there</summary>
+    <p>To point at something farther away: <b>dukha</b> and <b>dikha</b>, that one over there.</p>
+      </details>
+    </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/determiners.html">lisaanmasry.org</a></p>
+  </section>
+  <section id="roots" class="topic" aria-labelledby="rootsTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="rootsTitle" tabindex="-1">Roots and patterns</h1>
+    </div>
+    <p>Most words grow from a root of three consonants, which carries the meaning, set in a pattern of vowels, which carries the kind of word. Spotting the root helps you guess new words.</p>
+    <table class="gtable">
+      <caption>k-t-b · writing</caption>
+      <tbody>
+        <tr><th scope="row">he wrote</th><td><span class="pair"><b>katab</b> <span lang="ar" dir="rtl">كتب</span></span></td></tr>
+        <tr><th scope="row">book</th><td><span class="pair"><b>kitaab</b> <span lang="ar" dir="rtl">كتاب</span></span></td></tr>
+        <tr><th scope="row">writer, writing</th><td><span class="pair"><b>kaatib</b> <span lang="ar" dir="rtl">كاتب</span></span></td></tr>
+        <tr><th scope="row">written</th><td><span class="pair"><b>maktoob</b> <span lang="ar" dir="rtl">مكتوب</span></span></td></tr>
+        <tr><th scope="row">office, desk</th><td><span class="pair"><b>maktab</b> <span lang="ar" dir="rtl">مكتب</span></span></td></tr>
+        <tr><th scope="row">library, bookshop</th><td><span class="pair"><b>maktaba</b> <span lang="ar" dir="rtl">مكتبة</span></span></td></tr>
+      </tbody>
+    </table>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>Patterns worth knowing</summary>
+    <table class="gtable">
+      <thead>
+        <tr><th scope="col">Meaning</th><th scope="col">Pattern</th><th scope="col">Examples</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">the one doing it</th><td>_aa_i_</td><td><span class="ex"><b>saakin</b> living in</span><span class="ex"><b>raakib</b> riding</span></td></tr>
+        <tr><th scope="row">what was done to</th><td>ma_ _oo_</td><td><span class="ex"><b>ma'roof</b> known</span><span class="ex"><b>mashghool</b> busy</span></td></tr>
+        <tr><th scope="row">the place for it</th><td>ma_ _a_</td><td><span class="ex"><b>mat'am</b> restaurant (ta'aam, food)</span><span class="ex"><b>mal'ab</b> pitch (le'ib, play)</span></td></tr>
+      </tbody>
+    </table>
+      </details>
+      <details>
+        <summary>d-r-s · study</summary>
+    <p><b>daras</b>, he studied; <b>dars</b>, lesson; <b>madrasa</b>, school; <b>mudarris</b>, teacher.</p>
+      </details>
+    </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/rootandstem.html">lisaanmasry.org</a></p>
+  </section>
+  <section id="irregular-verbs" class="topic" aria-labelledby="irregularVerbsTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="irregularVerbsTitle" tabindex="-1">Irregular verbs</h1>
+    </div>
+    <p>Be, eat, take, come, give. A handful of everyday verbs don't follow the patterns on the Verbs page.</p>
+    <table class="gtable">
+      <caption>kaan · was</caption>
+      <thead>
+        <tr><th scope="col">Who</th><th scope="col">Was</th><th scope="col">Will be</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">I</th><td>kunt</td><td>hakoon</td></tr>
+        <tr><th scope="row">you m.</th><td>kunt</td><td>hatkoon</td></tr>
+        <tr><th scope="row">you f.</th><td>kunti</td><td>hatkooni</td></tr>
+        <tr><th scope="row">he</th><td>kaan</td><td>haykoon</td></tr>
+        <tr><th scope="row">she</th><td>kaanit</td><td>hatkoon</td></tr>
+        <tr><th scope="row">we</th><td>kunna</td><td>hankoon</td></tr>
+        <tr><th scope="row">you pl.</th><td>kuntu</td><td>hatkoonu</td></tr>
+        <tr><th scope="row">they</th><td>kaanu</td><td>haykoonu</td></tr>
+      </tbody>
+    </table>
+    <p>Now there is no verb at all: <b>ana ta'baan</b>, I'm tired. <b>bakoon</b> is for what is usually so: <b>bakoon fi el-beit bel-leil</b>, I'm at home in the evenings.</p>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>Eat and take</summary>
+    <table class="gtable">
+      <thead>
+        <tr><th scope="col"></th><th scope="col">ate</th><th scope="col">eat</th><th scope="col">took</th><th scope="col">take</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">I</th><td>kalt</td><td>baakul</td><td>khadt</td><td>baakhud</td></tr>
+        <tr><th scope="row">you m.</th><td>kalt</td><td>betaakul</td><td>khadt</td><td>betaakhud</td></tr>
+        <tr><th scope="row">you f.</th><td>kalti</td><td>betakli</td><td>khadti</td><td>betakhdi</td></tr>
+        <tr><th scope="row">he</th><td>kal</td><td>beyaakul</td><td>khad</td><td>beyaakhud</td></tr>
+        <tr><th scope="row">she</th><td>kalit</td><td>betaakul</td><td>khadit</td><td>betaakhud</td></tr>
+        <tr><th scope="row">we</th><td>kalna</td><td>benaakul</td><td>khadna</td><td>benaakhud</td></tr>
+        <tr><th scope="row">you pl.</th><td>kaltu</td><td>betaklu</td><td>khadtu</td><td>betakhdu</td></tr>
+        <tr><th scope="row">they</th><td>kalu</td><td>beyaklu</td><td>khadu</td><td>beyakhdu</td></tr>
+      </tbody>
+    </table><p>Commands: <b>kul</b>, <b>kuli</b>, <b>kulu</b>, eat!; <b>khud</b>, <b>khudi</b>, <b>khudu</b>, take!</p>
+      </details>
+      <details>
+        <summary>Come</summary>
+    <table class="gtable">
+      <thead>
+        <tr><th scope="col"></th><th scope="col">came</th><th scope="col">come</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">I</th><td>geit</td><td>baagi</td></tr>
+        <tr><th scope="row">you m.</th><td>geit</td><td>beteegi</td></tr>
+        <tr><th scope="row">you f.</th><td>geiti</td><td>beteegi</td></tr>
+        <tr><th scope="row">he</th><td>ga</td><td>beyeegi</td></tr>
+        <tr><th scope="row">she</th><td>gat</td><td>beteegi</td></tr>
+        <tr><th scope="row">we</th><td>geina</td><td>beneegi</td></tr>
+        <tr><th scope="row">you pl.</th><td>geitu</td><td>beteegu</td></tr>
+        <tr><th scope="row">they</th><td>gum</td><td>beyeegu</td></tr>
+      </tbody>
+    </table><p>The command is a different word: <b>ta'aala</b>, <b>ta'aali</b>, <b>ta'aalu</b>, come!</p>
+      </details>
+      <details>
+        <summary>Give</summary>
+    <p><b>edda</b>, he gave; <b>eddeit</b>, I gave; <b>beyeddi</b>, he gives; <b>eddi</b>, give! With an ending: <b>eddeeni</b>, give me. In shops, <b>haat</b>, give me, is the usual command.</p>
+      </details>
+    </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/irregular_verbs.html">lisaanmasry.org</a></p>
+  </section>
+  <section id="negation" class="topic" aria-labelledby="negationTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="negationTitle" tabindex="-1">Negation</h1>
+    </div>
+    <p>Not, never, nothing. Two words do most of the work: <b>ma-…-sh</b> around a verb, and <b>mish</b> before everything else.</p>
+    <table class="gtable">
+      <caption>Which one</caption>
+      <thead>
+        <tr><th scope="col">Use</th><th scope="col">With</th><th scope="col">Examples</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">ma-…-sh</th><td>verbs in the past and with be-</td><td><span class="ex"><b>ma-shuftuush</b> I didn't see him</span><span class="ex"><b>ma-ba'rafsh</b> I don't know</span></td></tr>
+        <tr><th scope="row">ma-…-sh</th><td>'and, ma'a, fi and li</td><td><span class="ex"><b>ma-'andeesh wa't</b> I don't have time</span><span class="ex"><b>ma-feesh mayya</b> there's no water</span></td></tr>
+        <tr><th scope="row">mish</th><td>the future</td><td><span class="ex"><b>mish haagi</b> I won't come</span></td></tr>
+        <tr><th scope="row">mish</th><td>participles, adjectives, nouns</td><td><span class="ex"><b>mish 'aayiz</b> I don't want</span><span class="ex"><b>mish ghaali</b> not expensive</span><span class="ex"><b>mish ana</b> not me</span></td></tr>
+      </tbody>
+    </table>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>Don't!</summary>
+    <p>ma-…-sh around the <i>you</i> form: <b>ma-tekhafsh</b>, don't be afraid; <b>ma-truhsh</b>, don't go; <b>ma-te'mileesh keda</b>, don't do that (to a woman).</p>
+      </details>
+      <details>
+        <summary>Never, nobody, nothing</summary>
+    <table class="gtable">
+      <tbody>
+        <tr><th scope="row">never</th><td><span class="ex"><b>'omri ma shuftu</b> I've never seen him</span></td></tr>
+        <tr><th scope="row">nobody</th><td><span class="ex"><b>mahaddish ga</b> nobody came</span></td></tr>
+        <tr><th scope="row">nothing</th><td><span class="ex"><b>ma-feesh haaga</b> there's nothing</span><span class="ex"><b>wala haaga</b> nothing at all</span></td></tr>
+        <tr><th scope="row">not yet</th><td><span class="ex"><b>lessa ma-kaltish</b> I haven't eaten yet</span></td></tr>
+        <tr><th scope="row">neither, nor</th><td><span class="ex"><b>la da wala da</b> neither one</span></td></tr>
+      </tbody>
+    </table>
+      </details>
+      <details>
+        <summary>No, not at all</summary>
+    <p><b>la'</b>, no. <b>khaalis</b> after a negative: <b>mish ghaali khaalis</b>, not expensive at all.</p>
+      </details>
+    </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/negation.html">lisaanmasry.org</a></p>
+  </section>
+  <section id="imperatives" class="topic" aria-labelledby="imperativesTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="imperativesTitle" tabindex="-1">Imperatives</h1>
+    </div>
+    <p>Commands and requests. A bare command is direct; Egyptians soften it with please, could you, or let's.</p>
+    <table class="gtable">
+      <caption>Asking politely</caption>
+      <tbody>
+        <tr><th scope="row">please</th><td><span class="ex"><b>law samaht</b> to a man</span><span class="ex"><b>law samahti</b> to a woman</span><span class="ex"><b>law samahtu</b> to a group</span></td></tr>
+        <tr><th scope="row">could you</th><td><span class="ex"><b>mumkin teftah esh-shibbaak?</b> could you open the window?</span></td></tr>
+        <tr><th scope="row">let's</th><td><span class="ex"><b>yalla nemshi</b> let's go</span></td></tr>
+        <tr><th scope="row">why don't you</th><td><span class="ex"><b>ma-teegi ma'aana</b> why don't you come with us</span></td></tr>
+      </tbody>
+    </table>
+    <p>Commands themselves, <b>ektib</b>, <b>eshrab</b>, <b>rooh</b>, are on the Verbs page.</p>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>Must, should, better</summary>
+    <table class="gtable">
+      <tbody>
+        <tr><th scope="row">must</th><td><span class="ex"><b>laazim tenaam badri</b> you must sleep early</span></td></tr>
+        <tr><th scope="row">supposed to</th><td><span class="ex"><b>el-mafrood nekoon hina</b> we're supposed to be here</span></td></tr>
+        <tr><th scope="row">had better</th><td><span class="ex"><b>ahsan taakhud taksi</b> you'd better take a taxi</span></td></tr>
+        <tr><th scope="row">no need</th><td><span class="ex"><b>mish laazim teegi</b> you don't have to come</span></td></tr>
+      </tbody>
+    </table><p>All of these stay the same for everyone; the verb after them is bare, without be-.</p>
+      </details>
+      <details>
+        <summary>Here you are: etfaddal</summary>
+    <p><b>etfaddal</b> (to a man), <b>etfaddali</b>, <b>etfaddalu</b>: here you are, come in, go ahead, sit down. Whatever you're being offered, it's the polite word.</p>
+      </details>
+    </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/orders.html">lisaanmasry.org</a></p>
+  </section>
+  <section id="questions" class="topic" aria-labelledby="questionsTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="questionsTitle" tabindex="-1">Questions</h1>
+    </div>
+    <p>A question is a statement in a questioning voice; question words usually stand where the answer would go.</p>
+    <table class="gtable">
+      <caption>Question words</caption>
+      <tbody>
+        <tr><th scope="row">what</th><td><span class="pair"><b>eih</b> <span lang="ar" dir="rtl">إيه</span></span></td><td><span class="ex"><b>esmak eih?</b> what's your name?</span></td></tr>
+        <tr><th scope="row">who</th><td><span class="pair"><b>meen</b> <span lang="ar" dir="rtl">مين</span></span></td><td><span class="ex"><b>meen da?</b> who's this?</span></td></tr>
+        <tr><th scope="row">where</th><td><span class="pair"><b>feen</b> <span lang="ar" dir="rtl">فين</span></span></td><td><span class="ex"><b>enta raayeh feen?</b> where are you going?</span></td></tr>
+        <tr><th scope="row">where from</th><td><span class="pair"><b>menein</b> <span lang="ar" dir="rtl">منين</span></span></td><td><span class="ex"><b>enti menein?</b> where are you from?</span></td></tr>
+        <tr><th scope="row">when</th><td><span class="pair"><b>emta</b> <span lang="ar" dir="rtl">إمتى</span></span></td><td><span class="ex"><b>hateegi emta?</b> when will you come?</span></td></tr>
+        <tr><th scope="row">why</th><td><span class="pair"><b>leih</b> <span lang="ar" dir="rtl">ليه</span></span></td><td><span class="ex"><b>leih ta'baan?</b> why are you tired?</span></td></tr>
+        <tr><th scope="row">how</th><td><span class="pair"><b>ezzay</b> <span lang="ar" dir="rtl">إزاي</span></span></td><td><span class="ex"><b>ezzayak?</b> how are you?</span></td></tr>
+        <tr><th scope="row">how many</th><td><span class="pair"><b>kaam</b> <span lang="ar" dir="rtl">كام</span></span></td><td><span class="ex"><b>'andak kaam sana?</b> how old are you?</span></td></tr>
+        <tr><th scope="row">which</th><td><span class="pair"><b>anhi</b> <span lang="ar" dir="rtl">أنهي</span></span></td><td><span class="ex"><b>anhi 'arabiyya?</b> which car?</span></td></tr>
+      </tbody>
+    </table>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>Yes or no</summary>
+    <p>Nothing changes but the voice: <b>enta ta'baan?</b>, are you tired? Answers: <b>aywa</b>, yes; <b>la'</b>, no.</p>
+      </details>
+      <details>
+        <summary>Or: walla</summary>
+    <p>In a question, or is <b>walla</b>: <b>shaay walla ahwa?</b>, tea or coffee? In a statement it is <b>aw</b>.</p>
+      </details>
+      <details>
+        <summary>How much?</summary>
+    <p><b>kaam</b> takes one, not many: <b>kaam kitaab?</b>, how many books? A price is <b>be-kaam</b>: <b>da be-kaam?</b>, how much is this?</p>
+      </details>
+      <details>
+        <summary>How are you, to each</summary>
+    <p><b>ezzayak</b> to a man, <b>ezzayik</b> to a woman, <b>ezzayuku</b> to a group. The answer: <b>el-hamdu lillaah</b>, thank God, fine.</p>
+      </details>
+    </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/questions.html">lisaanmasry.org</a></p>
+  </section>
+  <section id="prepositions" class="topic" aria-labelledby="prepositionsTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="prepositionsTitle" tabindex="-1">Prepositions</h1>
+    </div>
+    <p>In, on, from, with. They take the same endings as nouns: <b>ma'aaya</b>, with me; <b>'aleih</b>, on him.</p>
+    <table class="gtable">
+      <caption>Common ones</caption>
+      <tbody>
+        <tr><th scope="row">in, at</th><td><span class="pair"><b>fi</b> <span lang="ar" dir="rtl">في</span></span></td><td><span class="ex"><b>fi el-beit</b> at home</span></td></tr>
+        <tr><th scope="row">on</th><td><span class="pair"><b>'ala</b> <span lang="ar" dir="rtl">على</span></span></td><td><span class="ex"><b>'ala et-tarabeiza</b> on the table</span></td></tr>
+        <tr><th scope="row">from</th><td><span class="pair"><b>min</b> <span lang="ar" dir="rtl">من</span></span></td><td><span class="ex"><b>min Masr</b> from Egypt</span></td></tr>
+        <tr><th scope="row">to, for</th><td><span class="pair"><b>le-</b> <span lang="ar" dir="rtl">لـ</span></span></td><td><span class="ex"><b>eddi el-kitaab le-Ahmad</b> give the book to Ahmad</span></td></tr>
+        <tr><th scope="row">with</th><td><span class="pair"><b>ma'a</b> <span lang="ar" dir="rtl">مع</span></span></td><td><span class="ex"><b>ma'a sohaabi</b> with my friends</span></td></tr>
+        <tr><th scope="row">at someone's</th><td><span class="pair"><b>'and</b> <span lang="ar" dir="rtl">عند</span></span></td><td><span class="ex"><b>'and ommi</b> at my mother's</span></td></tr>
+        <tr><th scope="row">by, with</th><td><span class="pair"><b>be-</b> <span lang="ar" dir="rtl">بـ</span></span></td><td><span class="ex"><b>be-taksi</b> by taxi</span></td></tr>
+      </tbody>
+    </table>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>Where: next to, behind…</summary>
+    <table class="gtable">
+      <tbody>
+        <tr><th scope="row">next to</th><td><span class="ex"><b>ganb el-bank</b> next to the bank</span></td></tr>
+        <tr><th scope="row">in front of</th><td><span class="ex"><b>oddaam el-beit</b> in front of the house</span></td></tr>
+        <tr><th scope="row">behind</th><td><span class="ex"><b>wara el-mahatta</b> behind the station</span></td></tr>
+        <tr><th scope="row">under</th><td><span class="ex"><b>taht es-sereer</b> under the bed</span></td></tr>
+        <tr><th scope="row">above</th><td><span class="ex"><b>fo' el-matbakh</b> above the kitchen</span></td></tr>
+        <tr><th scope="row">between</th><td><span class="ex"><b>bein el-etnein</b> between the two</span></td></tr>
+      </tbody>
+    </table>
+      </details>
+      <details>
+        <summary>When: before, after, since</summary>
+    <p><b>abl</b>, before; <b>ba'd</b>, after; <b>min</b>, since or ago: <b>ba'd ed-dohr</b>, in the afternoon; <b>min sana</b>, a year ago; <b>le-hadd bukra</b>, until tomorrow.</p>
+      </details>
+      <details>
+        <summary>With endings</summary>
+    <p>'ala and fi get a long vowel before them: <b>'alayya</b>, on me; <b>'aleik</b>, on you; <b>fiyya</b>, in me; <b>feeh</b>, in it. <b>da 'alayya</b>, this one's on me.</p>
+      </details>
+      <details>
+        <summary>Verbs that come with one</summary>
+    <p>Learn these with their preposition: <b>dawwar 'ala</b>, look for; <b>khaaf min</b>, be afraid of; <b>fakkar fi</b>, think about; <b>ettasal be-</b>, call (on the phone).</p>
+      </details>
+    </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/prepositions.html">lisaanmasry.org</a></p>
+  </section>
+  <section id="conjunctions" class="topic" aria-labelledby="conjunctionsTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="conjunctionsTitle" tabindex="-1">Conjunctions</h1>
+    </div>
+    <p>And, but, because, if. The words that join one idea to the next.</p>
+    <table class="gtable">
+      <caption>Joining words</caption>
+      <tbody>
+        <tr><th scope="row">and</th><td>we-</td><td><span class="ex"><b>'eish we-gebna</b> bread and cheese</span></td></tr>
+        <tr><th scope="row">or</th><td>aw</td><td><span class="ex"><b>bukra aw ba'du</b> tomorrow or the day after</span></td></tr>
+        <tr><th scope="row">but</th><td>bass, laakin</td><td><span class="ex"><b>helw bass ghaali</b> nice but expensive</span></td></tr>
+        <tr><th scope="row">because</th><td>'ashaan, la'inn</td><td><span class="ex"><b>mish gayy 'ashaan ta'baan</b> I'm not coming because I'm tired</span></td></tr>
+        <tr><th scope="row">so that</th><td>'ashaan</td><td><span class="ex"><b>bazaakir 'ashaan angah</b> I study so I pass</span></td></tr>
+        <tr><th scope="row">when</th><td>lamma</td><td><span class="ex"><b>lamma tewsal, kallimni</b> when you arrive, call me</span></td></tr>
+        <tr><th scope="row">that</th><td>enn</td><td><span class="ex"><b>a'raf ennak mashghool</b> I know that you're busy</span></td></tr>
+      </tbody>
+    </table>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>If: law</summary>
+    <p><b>law</b> is the everyday if, and the verb after it is in the past even for the future: <b>law geit badri, hanetghadda sawa</b>, if you come early, we'll have lunch together. For what didn't happen, both halves take kaan: <b>law kunt 'arift, kunt geit</b>, if I'd known, I'd have come.</p>
+      </details>
+      <details>
+        <summary>Before, after, until</summary>
+    <p>Before a verb they take <b>ma</b>: <b>abl ma</b>, before; <b>ba'd ma</b>, after; <b>le-hadd ma</b>, until. <b>ba'd ma kalna, nizilna</b>, after we ate, we went out.</p>
+      </details>
+      <details>
+        <summary>enn takes endings</summary>
+    <p><b>enn</b> takes an ending for who comes next: <b>ennak</b>, that you; <b>ennaha</b>, that she; <b>enni</b>, that I.</p>
+      </details>
+      <details>
+        <summary>Either… or</summary>
+    <p><b>ya… ya</b>: <b>ya enta ya ana</b>, either you or me.</p>
+      </details>
+    </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/conjunctions.html">lisaanmasry.org</a></p>
+  </section>
+  <section id="relative-clauses" class="topic" aria-labelledby="relativeClausesTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="relativeClausesTitle" tabindex="-1">Relative clauses</h1>
+    </div>
+    <p>Who, which, that: all of them are <b>elli</b>, the same for everyone.</p>
+    <table class="gtable">
+      <caption>elli</caption>
+      <tbody>
+        <tr><th scope="row">who</th><td><span class="ex"><b>er-raagil elli sakin foo'</b> the man who lives upstairs</span></td></tr>
+        <tr><th scope="row">which</th><td><span class="ex"><b>el-'arabiyya elli eshtareitha</b> the car (that) I bought</span></td></tr>
+        <tr><th scope="row">the one who</th><td><span class="ex"><b>elli ga badri mashi</b> whoever came early left</span></td></tr>
+        <tr><th scope="row">what</th><td><span class="ex"><b>khud elli enta 'aayzu</b> take what you want</span></td></tr>
+      </tbody>
+    </table>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>The word that points back</summary>
+    <p>When the noun is the object, the verb after elli takes an ending for it: <b>el-'arabiyya elli eshtareit<em>ha</em></b>, the car I bought (it). <b>el-film elli shuft<em>u</em></b>, the film I saw (it).</p>
+      </details>
+      <details>
+        <summary>No elli after a or an</summary>
+    <p>When the noun has no el-, there's no elli: <b>'andi sadee' sakin fi Iskendereyya</b>, I have a friend (who) lives in Alexandria.</p>
+      </details>
+    </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/which.html">lisaanmasry.org</a></p>
+  </section>
+  <section id="adverbs" class="topic" aria-labelledby="adverbsTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="adverbsTitle" tabindex="-1">Adverbs</h1>
+    </div>
+    <p>When, where, how much. Most are single words that stay the same, usually at the end of the sentence.</p>
+    <table class="gtable">
+      <caption>When</caption>
+      <tbody>
+        <tr><th scope="row">now</th><td><span class="ex"><b>delwa'ti</b> </span></td></tr>
+        <tr><th scope="row">today</th><td><span class="ex"><b>ennaharda</b> </span></td></tr>
+        <tr><th scope="row">yesterday</th><td><span class="ex"><b>embaareh</b> </span></td></tr>
+        <tr><th scope="row">tomorrow</th><td><span class="ex"><b>bukra</b> </span></td></tr>
+        <tr><th scope="row">later</th><td><span class="ex"><b>ba'dein</b> </span></td></tr>
+        <tr><th scope="row">early, late</th><td><span class="ex"><b>badri</b> </span><span class="ex"><b>met'akhar</b> </span></td></tr>
+        <tr><th scope="row">still, not yet</th><td><span class="ex"><b>lessa</b> </span></td></tr>
+        <tr><th scope="row">always, sometimes</th><td><span class="ex"><b>dayman</b> </span><span class="ex"><b>sa'aat</b> </span></td></tr>
+      </tbody>
+    </table>
+    <table class="gtable">
+      <caption>Where</caption>
+      <tbody>
+        <tr><th scope="row">here, there</th><td><span class="ex"><b>hina</b> </span><span class="ex"><b>hinaak</b> </span></td></tr>
+        <tr><th scope="row">inside, outside</th><td><span class="ex"><b>guwwa</b> </span><span class="ex"><b>barra</b> </span></td></tr>
+        <tr><th scope="row">upstairs, downstairs</th><td><span class="ex"><b>foo'</b> </span><span class="ex"><b>taht</b> </span></td></tr>
+      </tbody>
+    </table>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>How much: awi, shwayya, khaalis</summary>
+    <p><b>awi</b>, very, after the word: <b>bard awi</b>, very cold. <b>shwayya</b>, a bit: <b>ta'baan shwayya</b>, a bit tired. <b>khaalis</b>, completely or (with not) at all.</p>
+      </details>
+      <details>
+        <summary>Also, only, like this</summary>
+    <p><b>kamaan</b>, also or more: <b>ana kamaan</b>, me too; <b>waahid kamaan</b>, one more. <b>bardo</b>, also, all the same. <b>bass</b>, only, or that's all: <b>itnein bass</b>, just two. <b>keda</b>, like this, so.</p>
+      </details>
+      <details>
+        <summary>How: be- + noun</summary>
+    <p>Many hows are be- and a noun: <b>be-sor'a</b>, quickly; <b>be-raaha</b>, slowly, take it easy; <b>be-sohoola</b>, easily.</p>
+      </details>
+    </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/adverbs.html">lisaanmasry.org</a></p>
+  </section>
+  <section id="numbers" class="topic" aria-labelledby="numbersTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="numbersTitle" tabindex="-1">Numbers</h1>
+    </div>
+    <p>Counting, prices and phone numbers. Prices and phone numbers are often written in Arabic digits, shown next to each number.</p>
+    <table class="gtable">
+      <caption>0 to 10</caption>
+      <tbody>
+        <tr><th scope="row">0 <span lang="ar" dir="rtl">٠</span></th><td>sifr</td><td>6 <span lang="ar" dir="rtl">٦</span></td><td>sitta</td></tr>
+        <tr><th scope="row">1 <span lang="ar" dir="rtl">١</span></th><td>waahid</td><td>7 <span lang="ar" dir="rtl">٧</span></td><td>sab'a</td></tr>
+        <tr><th scope="row">2 <span lang="ar" dir="rtl">٢</span></th><td>etnein</td><td>8 <span lang="ar" dir="rtl">٨</span></td><td>tamanya</td></tr>
+        <tr><th scope="row">3 <span lang="ar" dir="rtl">٣</span></th><td>talaata</td><td>9 <span lang="ar" dir="rtl">٩</span></td><td>tis'a</td></tr>
+        <tr><th scope="row">4 <span lang="ar" dir="rtl">٤</span></th><td>arba'a</td><td>10 <span lang="ar" dir="rtl">١٠</span></td><td>'ashara</td></tr>
+        <tr><th scope="row">5 <span lang="ar" dir="rtl">٥</span></th><td>khamsa</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <table class="gtable">
+      <caption>Tens and more</caption>
+      <tbody>
+        <tr><th scope="row">11, 12</th><td>hidaashar, etnaashar</td></tr>
+        <tr><th scope="row">13 to 19</th><td>talattaashar, arba'taashar, khamastaashar, sittaashar, saba'taashar, tamantaashar, tisa'taashar</td></tr>
+        <tr><th scope="row">20, 30, 40</th><td>'ishreen, talateen, arbe'een</td></tr>
+        <tr><th scope="row">50 to 90</th><td>khamseen, sitteen, sab'een, tamaneen, tis'een</td></tr>
+        <tr><th scope="row">100, 200, 1000</th><td>miyya, miteen, alf</td></tr>
+      </tbody>
+    </table>
+    <p>Units come first: 25 is <b>khamsa we-'ishreen</b>, five and twenty.</p>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>Counting things</summary>
+    <table class="gtable">
+      <thead>
+        <tr><th scope="col">How many</th><th scope="col">Says</th><th scope="col">Example</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">1</th><td>the noun alone</td><td><span class="ex"><b>kitaab</b> a book</span></td></tr>
+        <tr><th scope="row">2</th><td>the -een form</td><td><span class="ex"><b>kitabeen</b> two books</span></td></tr>
+        <tr><th scope="row">3 to 10</th><td>a short number + plural</td><td><span class="ex"><b>talat kutub</b> three books</span><span class="ex"><b>khamas sa'aat</b> five hours</span></td></tr>
+        <tr><th scope="row">11 and up</th><td>number + one</td><td><span class="ex"><b>'ishreen geneih</b> twenty pounds</span></td></tr>
+      </tbody>
+    </table>
+      </details>
+      <details>
+        <summary>First, second</summary>
+    <p><b>awwil</b>, first; <b>taani</b>, second; <b>taalit</b>, third; <b>raabi'</b>, fourth; <b>khaamis</b>, fifth. <b>awwil marra</b>, the first time; <b>el-door et-taalit</b>, the third floor.</p>
+      </details>
+      <details>
+        <summary>Prices</summary>
+    <p><b>be-kaam?</b>, how much? <b>be-khamseen geneih</b>, fifty pounds. Half and quarter: <b>noss</b>, <b>rob'</b>; <b>noss kilo</b>, half a kilo.</p>
+      </details>
+    </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/numbers.html">lisaanmasry.org</a></p>
+  </section>
+  <section id="time" class="topic" aria-labelledby="timeTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="timeTitle" tabindex="-1">Time and dates</h1>
+    </div>
+    <p>What time it is, days of the week, months. Hours use the same numbers, with es-sa'a, the hour.</p>
+    <table class="gtable">
+      <caption>The time</caption>
+      <tbody>
+        <tr><th scope="row">what time is it?</th><td><span class="ex"><b>es-sa'a kaam?</b> </span></td></tr>
+        <tr><th scope="row">3:00</th><td><span class="ex"><b>es-sa'a talaata</b> </span></td></tr>
+        <tr><th scope="row">3:15</th><td><span class="ex"><b>talaata we-rob'</b> and a quarter</span></td></tr>
+        <tr><th scope="row">3:20</th><td><span class="ex"><b>talaata we-tilt</b> and a third</span></td></tr>
+        <tr><th scope="row">3:30</th><td><span class="ex"><b>talaata we-noss</b> and a half</span></td></tr>
+        <tr><th scope="row">3:45</th><td><span class="ex"><b>arba'a ella rob'</b> four less a quarter</span></td></tr>
+      </tbody>
+    </table>
+    <table class="gtable">
+      <caption>Days</caption>
+      <tbody>
+        <tr><th scope="row">Sunday</th><td>el-hadd</td><td>Thursday</td><td>el-khamees</td></tr>
+        <tr><th scope="row">Monday</th><td>el-etnein</td><td>Friday</td><td>eg-gom'a</td></tr>
+        <tr><th scope="row">Tuesday</th><td>et-talaat</td><td>Saturday</td><td>es-sabt</td></tr>
+        <tr><th scope="row">Wednesday</th><td>el-arba'</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>Months</summary>
+    <p>They are numbered: <b>shahr talaata</b>, month three, is March, and that's how most people say it. The names are the European ones: <b>yanaayer</b>, <b>febraayer</b>, <b>maaris</b>, <b>ebreel</b>, <b>maayu</b>, <b>yunyu</b>, <b>yulyu</b>, <b>aghostos</b>, <b>sebtamber</b>, <b>oktobar</b>, <b>novamber</b>, <b>desamber</b>.</p>
+      </details>
+      <details>
+        <summary>Parts of the day</summary>
+    <p><b>es-sobh</b>, morning; <b>ed-dohr</b>, noon; <b>el-'asr</b>, afternoon; <b>el-maghrib</b>, sunset; <b>bel-leil</b>, at night. In the morning is <b>es-sobh</b> on its own: <b>baseeb el-beit es-sobh</b>, I leave home in the morning.</p>
+      </details>
+      <details>
+        <summary>Before and after today</summary>
+    <p><b>awwil embaareh</b>, the day before yesterday; <b>ba'd bukra</b>, the day after tomorrow; <b>el-osboo' el-gayy</b>, next week; <b>es-sana elli faatit</b>, last year; <b>min yomeen</b>, two days ago; <b>ba'd sa'a</b>, in an hour.</p>
+      </details>
+    </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/time.html">lisaanmasry.org</a></p>
+  </section>
+  <section id="quantities" class="topic" aria-labelledby="quantitiesTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="quantitiesTitle" tabindex="-1">Quantities</h1>
+    </div>
+    <p>A lot, a little, enough, half.</p>
+    <table class="gtable">
+      <caption>How much</caption>
+      <tbody>
+        <tr><th scope="row">a lot, many</th><td><span class="ex"><b>naas kiteer</b> a lot of people</span><span class="ex"><b>bahebbu kiteer</b> I like it a lot</span></td></tr>
+        <tr><th scope="row">a little, some</th><td><span class="ex"><b>shwayyit sukkar</b> a little sugar</span></td></tr>
+        <tr><th scope="row">enough</th><td><span class="ex"><b>kefaaya</b> that's enough</span></td></tr>
+        <tr><th scope="row">more, less</th><td><span class="ex"><b>aktar</b> </span><span class="ex"><b>a'all</b> </span></td></tr>
+        <tr><th scope="row">half, quarter</th><td><span class="ex"><b>noss</b> </span><span class="ex"><b>rob'</b> </span></td></tr>
+        <tr><th scope="row">another one</th><td><span class="ex"><b>waahid kamaan</b> </span></td></tr>
+      </tbody>
+    </table>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>A piece of, a glass of</summary>
+    <p>The amount comes first, without el-, and a word ending in -a turns it to -it: <b>kubbaayit mayya</b>, a glass of water; <b>hettit 'eish</b>, a piece of bread; <b>kilo tamaatim</b>, a kilo of tomatoes.</p>
+      </details>
+      <details>
+        <summary>How many takes one</summary>
+    <p>After <b>kaam</b> the noun stays single: <b>kaam kilo?</b>, how many kilos?</p>
+      </details>
+    </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/quantities.html">lisaanmasry.org</a></p>
+  </section>
+  <section id="courtesies" class="topic" aria-labelledby="courtesiesTitle" hidden>
+    <div class="topic-head">
+      <button class="icon-btn" type="button" data-topic="" aria-label="All grammar topics"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <h1 id="courtesiesTitle" tabindex="-1">Courtesies</h1>
+    </div>
+    <p>Greetings and set phrases. Most have a fixed answer, and the answer matters as much as the greeting.</p>
+    <table class="gtable">
+      <caption>Greetings and answers</caption>
+      <thead>
+        <tr><th scope="col"></th><th scope="col">You say</th><th scope="col">They answer</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">hello</th><td>es-salaamu 'aleikum</td><td>we-'aleikum es-salaam</td></tr>
+        <tr><th scope="row">good morning</th><td>sabaah el-kheir</td><td>sabaah en-noor</td></tr>
+        <tr><th scope="row">good evening</th><td>masaa' el-kheir</td><td>masaa' en-noor</td></tr>
+        <tr><th scope="row">how are you?</th><td>ezzayak?</td><td>el-hamdu lillaah</td></tr>
+        <tr><th scope="row">thank you</th><td>shukran</td><td>'afwan</td></tr>
+        <tr><th scope="row">goodbye</th><td>ma'a es-salaama</td><td>allaah yesallimak</td></tr>
+        <tr><th scope="row">welcome</th><td>ahlan wa sahlan</td><td>ahlan beek</td></tr>
+      </tbody>
+    </table>
+    <h2>More</h2>
+    <div class="more">
+      <details>
+        <summary>Words for every day</summary>
+    <table class="gtable">
+      <tbody>
+        <tr><th scope="row">OK</th><td><span class="ex"><b>maashi</b> </span><span class="ex"><b>tamaam</b> fine, perfect</span></td></tr>
+        <tr><th scope="row">yes, no</th><td><span class="ex"><b>aywa</b> </span><span class="ex"><b>la'</b> </span></td></tr>
+        <tr><th scope="row">sorry, never mind</th><td><span class="ex"><b>ma'lesh</b> </span></td></tr>
+        <tr><th scope="row">excuse me, please</th><td><span class="ex"><b>law samaht</b> </span></td></tr>
+        <tr><th scope="row">here you are, go ahead</th><td><span class="ex"><b>etfaddal</b> </span></td></tr>
+      </tbody>
+    </table>
+      </details>
+      <details>
+        <summary>God in everyday speech</summary>
+    <p>These are said by everyone, as habits of speech: <b>enshaallaah</b>, hopefully (of anything in the future); <b>el-hamdu lillaah</b>, thank God, all's well; <b>mashaallaah</b>, how lovely (praising without envy); <b>allaah yekhallik</b>, bless you, please.</p>
+      </details>
+      <details>
+        <summary>Congratulations, get well</summary>
+    <p><b>mabrook</b>, congratulations, answered <b>allaah yebaarik feek</b>. <b>salamtak</b>, get well soon, answered <b>allaah yesallimak</b>.</p>
+      </details>
+      <details>
+        <summary>The ending follows the person</summary>
+    <p>Answers aimed at someone change with them: <b>ahlan beek</b> to a man, <b>ahlan beeki</b> to a woman, <b>ahlan beeku</b> to a group; <b>etfaddal</b>, <b>etfaddali</b>, <b>etfaddalu</b>.</p>
+      </details>
+    </div>
+    <p class="credits">More, with recordings: <a href="https://www.lisaanmasry.org/grammar/courtesies.html">lisaanmasry.org</a></p>
+  </section>
+
 </main>
 
 <button id="followBtn" class="follow" type="button" hidden>Follow along</button>

@@ -1,8 +1,8 @@
 import { test, expect } from "./fakes.js";
 
-const TOPICS = ["Possessives", "Verbs", "Participles", "Pseudo-verbs"];
+const TOPICS = ["Sounds and letters", "Nouns", "Adjectives", "Pronouns", "Possessives", "Determiners", "Roots and patterns", "Verbs", "Irregular verbs", "Participles", "Pseudo-verbs", "Negation", "Imperatives", "Questions", "Prepositions", "Conjunctions", "Relative clauses", "Adverbs", "Numbers", "Time and dates", "Quantities", "Courtesies"];
 // the pages' hyphens don't break a line (U+2011), so a name matches either hyphen
-const topic = (page, name) => page.getByRole("button", { name: new RegExp("^" + name.replace("-", "[-\u2011]") + " ") });
+const topic = (page, name) => page.getByRole("button", { name: new RegExp("^" + name.replaceAll("-", "[-\u2011]") + " ") });
 
 test("a topic opens from the grammar tab and goes back, and the tab stays open after a reload", async ({ device }) => {
   const page = await device();
