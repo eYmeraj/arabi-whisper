@@ -694,17 +694,34 @@ el.tabGrammar.addEventListener("click", () => showTab("grammar"));
 const grammarText = document.createTreeWalker(el.grammar, NodeFilter.SHOW_TEXT);
 while (grammarText.nextNode()) grammarText.currentNode.data = grammarText.currentNode.data.replaceAll("-", "\u2011");
 
-el.grammar.addEventListener("click", (e) => {
-  const b = e.target.closest("[data-topic]");
-  if (!b) return;
-  const open = b.dataset.topic; // "" goes back to the list
+// An open topic is a history entry, so the browser's back (button or swipe) returns to the list
+function showTopic(open) {
   const left = el.grammar.querySelector(".topic:not([hidden])");
+  if (!open && !left) return;
   for (const topic of el.grammar.querySelectorAll(".topic")) topic.hidden = topic.id !== open;
   el.topics.hidden = !!open;
   scrollTo({ top: 0 });
   // the tapped button is hidden now: the focus moves to what took its place
   (open ? $(open).querySelector("h1") : el.topics.querySelector(`[data-topic="${left.id}"]`)).focus();
+}
+
+el.grammar.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-topic]");
+  if (!b) return;
+  if (!b.dataset.topic) return history.back(); // the back arrow
+  history.pushState({ topic: b.dataset.topic }, "");
+  showTopic(b.dataset.topic);
 });
+addEventListener("popstate", () => showTopic(history.state?.topic ?? ""));
+if (history.state?.topic) history.replaceState(null, ""); // a reload opens the list, so its back step mustn't reopen a topic
+
+// The app on the home screen has no back swipe of its own: a swipe to the right on a topic goes back too
+let swipeFrom;
+el.grammar.addEventListener("touchstart", (e) => (swipeFrom = e.touches.length === 1 && { x: e.touches[0].clientX, y: e.touches[0].clientY }), { passive: true });
+el.grammar.addEventListener("touchend", (e) => {
+  const dx = e.changedTouches[0].clientX - swipeFrom?.x, dy = e.changedTouches[0].clientY - swipeFrom?.y;
+  if (el.topics.hidden && dx > 60 && Math.abs(dy) < dx / 2) history.back();
+}, { passive: true });
 
 // ---- Following the music ----
 function isLive() {
