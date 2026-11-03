@@ -9,7 +9,7 @@ test("a topic opens from the grammar tab and goes back, and the tab stays open a
   await page.getByRole("tab", { name: "Grammar" }).click();
   await topic(page, "Possessives").click();
   await expect(page.getByRole("heading", { name: "Possessives" })).toBeFocused();
-  await expect(page.getByRole("table", { name: "The endings" })).toContainText("alami");
+  await expect(page.getByRole("table", { name: "The endings" })).toContainText("2alami");
 
   await page.getByRole("button", { name: "All grammar topics" }).click();
   await expect(topic(page, "Possessives")).toBeFocused();
@@ -59,4 +59,10 @@ test("the browser's back and a swipe to the right leave a topic for the list, an
   await page.goBack();
   await expect(topic(page, "Adverbs")).toBeFocused();
   await expect(page.locator("#verbs")).toBeHidden();
+});
+
+test("Sounds opens the key to the app's spelling", async ({ device }) => {
+  const page = await device();
+  await page.getByRole("button", { name: "Sounds", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "How to read the sounds" })).toContainText("7abeebi");
 });
