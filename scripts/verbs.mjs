@@ -7,12 +7,12 @@ import { plainArabic } from "../lib.js";
 const SOURCE = "https://kaikki.org/dictionary/Egyptian%20Arabic/kaikki.org-dictionary-EgyptianArabic.jsonl";
 
 // Wiktionary's letters, as the app writes them (the Sounds guide in index.html)
-const LETTERS = { ʕ: "'", ʿ: "'", ʔ: "'", ʾ: "'", š: "sh", ḥ: "h", ṭ: "t", ḵ: "kh", ṣ: "s", ḡ: "gh", ḍ: "d", ẓ: "z", ṯ: "th", ɡ: "g", ā: "aa", ī: "ee", ū: "oo", ē: "ei", ō: "o", á: "a", í: "i", ú: "u" };
+const LETTERS = { ʕ: "3", ʿ: "3", ʔ: "2", ʾ: "2", š: "sh", ḥ: "7", ṭ: "t", ḵ: "5", ṣ: "s", ḡ: "gh", ḍ: "d", ẓ: "z", ṯ: "th", ɡ: "g", ā: "aa", ī: "ee", ū: "oo", ē: "ei", ō: "o", á: "a", í: "i", ú: "u" };
 
-export function respell(rom) {
+export function respell(rom, ar = "") {
   return rom
-    .replace(/^[ʔʾ]/, "") // a glottal stop at the start isn't written (ع is: ')
-    .replace(/([stkgd])([hḥ])/g, "$1-$2") // two letters, not sh or kh: as-ha, bet-hebb
+    .replace(/^[ʔʾ]/, ar.startsWith("ق") ? "2" : "") // a glottal stop at the start is written only for ق
+    .replace(/([stkgd])h/g, "$1-h") // two letters, not sh or gh: mas-hoor
     .replace(/./g, (c) => LETTERS[c] ?? c)
     .replace(/^bi(?=[ytn])/, "be") // the prefixes: be-, ye-, te-, ne-, and e- for a word-initial i
     .replace(/^(be|ha|)([ytn])i/, "$1$2e")
@@ -24,10 +24,12 @@ assert.equal(respell("hatiktibi"), "hatektibi");
 assert.equal(respell("niktib"), "nektib");
 assert.equal(respell("iktib"), "ektib");
 assert.equal(respell("baktib"), "baktib");
-assert.equal(respell("ʕiriftu"), "'iriftu");
+assert.equal(respell("ʕiriftu"), "3iriftu");
 assert.equal(respell("šāf"), "shaaf");
 assert.equal(respell("ʔistanna"), "estanna");
-assert.equal(respell("yisḥab"), "yes-hab");
+assert.equal(respell("yisḥab"), "yes7ab");
+assert.equal(respell("ʔāl", "قال"), "2aal");
+assert.equal(respell("ḵallaṣ"), "5allas");
 
 // The rows of each tense, in the order of the Verbs page, with the tags that pick each form
 const PEOPLE = [
@@ -44,7 +46,7 @@ const TENSES = [
   ["Past", "past", PEOPLE],
   ["Now · be-", "indicative present", PEOPLE],
   ["Will · ha-", "future", PEOPLE],
-  ["Bare (after laazim, 'aayiz…)", "subjunctive", PEOPLE],
+  ["Bare (after laazim, 3aayiz…)", "subjunctive", PEOPLE],
   ["Commands", "imperative", [["to a man", "masculine singular"], ["to a woman", "feminine singular"], ["to a group", "plural"]]],
 ];
 
@@ -54,7 +56,8 @@ function table(entry) {
     rows: rows.flatMap(([en, who]) => {
       const want = (tense + " " + who).split(" ");
       const f = entry.forms.find((f) => want.every((t) => f.tags?.includes(t)) && f.roman);
-      return f ? [{ en, rom: respell(f.roman), ar: f.form }] : [];
+      // Wiktionary writes some futures with ḥa- (ḥaʔāḵud); the app writes ha- for all of them
+      return f ? [{ en, rom: respell(tense === "future" ? f.roman.replace(/^ḥ(?=[aā])/, "h") : f.roman, f.form), ar: f.form }] : [];
     }),
   })).filter((t) => t.rows.length);
   if (tenses.length < 4) return null; // no full table on Wiktionary
@@ -67,7 +70,7 @@ function table(entry) {
   const head = entry.forms.find((f) => f.tags?.includes("romanization"))?.form;
   return {
     ar: (entry.forms.find((f) => f.tags?.includes("canonical"))?.form ?? entry.word).replace(/\s.*$/, ""),
-    rom: respell(head || tenses[0].rows[3].rom),
+    rom: head ? respell(head, entry.word) : tenses[0].rows[3].rom,
     en: (entry.senses?.[0]?.glosses?.[0] || "").replace(/^to /, ""),
     url: "https://en.wiktionary.org/wiki/" + encodeURIComponent(entry.word) + "#Egyptian_Arabic",
     tenses,

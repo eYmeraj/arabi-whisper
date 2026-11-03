@@ -33,7 +33,7 @@ const SPOTIFY_SCOPE = "user-read-currently-playing user-modify-playback-state us
 const MODELS = ["gemini-3.8-flash", "gemini-3.6-flash"]; // no Flash-Lite: its translations and spelling are too often wrong
 // Stamped on every converted line. Raise it when better models or prompts make earlier results worth redoing: lines
 // with an older stamp are converted again when their song is opened (2: Flash-Lite dropped; 3: verbs named, for their tables).
-const CONVERSION = 3;
+const CONVERSION = 4;
 // The Cloudflare Worker that keeps converted songs for all your devices (worker/, see README). "" turns syncing off.
 const SYNC_URL = "https://arabi-whisper-sync.eycode.workers.dev";
 const POLL_MS = 5000;
@@ -126,7 +126,7 @@ const el = {
   content: $("content"),
   follow: $("followBtn"),
   settings: $("settings"),
-  sounds: $("sounds"),
+  sounds: $("soundsKey"),
   paste: $("paste"),
   pasteText: $("pasteText"),
   geminiKey: $("geminiKey"),
